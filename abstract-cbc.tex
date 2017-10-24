@@ -54,7 +54,7 @@ We detail a process for generating correct-by-construction consensus protocols w
 
 \section{Part 0: Introduction}
 
-Consensus protocols are used by nodes in a distributed system to decide on the same values, or on the same list of inputs to a replicate state machine (with irrevocable finality). There are, roughly speaking, two classes of consensus protocols known today. One we will refer to as ``traditional consensus". This class has its ``genetic roots'' in Paxos and multi-Paxos, and the ``traditional" consensus protocol research from the 80s and 90s. Another we will call ``blockchain consensus". These are protocols that has its roots in the Bitcoin blockchain, and Satoshi Nakamoto's whitepaper. We will spend more time now talking about differences between these classes of protocols, before giving an overview of the task this document is set out to accomplish.
+Consensus protocols are used by nodes in distributed systems to decide on the same values, or on the same list of inputs to a replicated state machine (with irrevocable finality). There are, roughly speaking, two classes of consensus protocols known today. One we refer to as ``traditional consensus''. This class has its ``genetic roots'' in Paxos and multi-Paxos[CITE], and in the ``traditional'' consensus protocol research from the 80s and 90s[CITE]. The other we refer to as ``blockchain consensus''. These are protocols that have their roots in the Bitcoin blockchain and Satoshi Nakamoto's whitepaper[CITE]. We now discuss the differences between these classes of protocols, before giving an overview of the correct-by-construction process.
 
 \subsection{Comparing Traditional Consensus to Blockchain Consensus}
 
