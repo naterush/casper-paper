@@ -4,6 +4,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{tikz-cd}
+\usepackage{etoolbox}
 
 \usepackage{geometry}
  \geometry{
@@ -37,6 +38,8 @@
 \newcommand{\idarrow}[1][]{
 	\mathrm{1}_{#1}
 }
+
+\AtBeginEnvironment{quote}{\singlespacing\small}
 
 \setlength{\parskip}{1em}
 \setlength{\parindent}{2em}
@@ -93,21 +96,29 @@ Following the description of the correct-by-construction process, specifications
 
 \section{Part 1: Abstract Consensus Safety Proof}
 
-The purpose of this section is to give an abstract consensus safety proof ``at the top" of the correct-by-construction process. We have aimed to give the safety theorem in the most generic terms possible, so that we can generate as wide of an array of protocols as possible. We therefore will say nothing in the consensus safety proof about the possible values of the consensus, $\cat{C}$. 
+We now give an abstract consensus safety proof as the foundation of the correct-by-construction process. We provide the safety theorem in the most generic terms possible, so that we can generate as wide of an array of protocols as possible. We therefore say nothing in the consensus safety proof about the possible values of the consensus, $\cat{C}$.
 
-We will instead use propositions from some logic about values of the consensus, $\mathcal{L}_\cat{C}$. The propositions are ``True" or ``False" of/for every possible value of the consensus. The logic has negation and boolean operators/transformations. 
+We instead use propositions from some logic about values of the consensus, $\mathcal{L}_\cat{C}$. The propositions are either ``True'' or ``False'' of/for every possible value of the consensus. The logic has negation and boolean operators/transformations.
 
-We also need a notion of "protocol states" and "protocol executions", which is implemented by a category $\cat{\Sigma}$. Finally, the consensus protocol will have a map $\mathcal{E}$ called the ``estimator" which maps protocol states to propositions in the logic about values of the consensus. This map relates the states of the protocol to propositions about the value of the consensus. These propositions, called ``estimates", are understood to be ``guesses" about the value of the consensus.
+We have a notion of ``protocol states'' and ``protocol executions'', which is implemented by a category $\cat{\Sigma}$. Finally, the consensus protocol requires a map $\mathcal{E}$ called the ``estimator'' which maps protocol states to propositions in the logic about values of the consensus. These propositions, called ``estimates'', are understood to be ``guesses'' about the value of the consensus.
 
-We are going to use the ``looseness" of the estimator to capture the ``forking" behaviour of a blockchain consensus protocol, where, for example, a block could be reverted. Note that decisions can always be implemented by this map (it's possible for $\mathcal{E}$ to be ``monotonic"), but that decisions can not implement forking/non-monotonic estimators (because the set of decisions is monotonic by definition, but forking is not).
+We use the ``looseness'' of the estimator to capture the ``forking'' behaviour of a blockchain consensus protocol, where, for example, a block could be reverted. Note, decisions can always be implemented by this map (it's possible for $\mathcal{E}$ to be ``monotonic''), but decisions cannot implement forking/non-monotonic estimators (because the set of decisions is monotonic by definition, but forking is not).
 
-Therefore, in order to capture both potentially-forking estimates and certainly-final decisions we will look only at protocols with estimators and ask whether/when \emph{hypothetical} decisions on estimates would be consensus safe. 
+Therefore, in order to capture both potentially-forking estimates and certainly-final decisions we only consider protocols with estimators and ask whether/when \emph{hypothetical} decisions on estimates are consensus safe. I.e.,
 
-I.e., ``\emph{if} a node \emph{were} to make a decisions on estimate $p$ at protocol state $\sigma$, then they would have consensus safety with a node \emph{hypothetically} making a decision on estimate $q$ at state $\sigma'$ (under some conditions)", or ``\emph{if} it were to decide on the block 7 confirmations deep, my Bitcoin client would have consensus safety with your node, \emph{if} it made similar decisions (with very high probability in a synchronous network with less than some amount of Byzantine hashrate)."
+\begin{quote}
+``\emph{if} a node \emph{were} to make a decision on estimate $p$ at protocol state $\sigma$, then that node would have consensus safety with any other node \emph{hypothetically} making a decision on estimate $q$ at state $\sigma'$ (under some conditions)''
+\end{quote}
 
-So we are going to take the ``estimate safety consensus protocol" to be a tuple $(\cat{C}, \mathcal{L}_\cat{C}, \cat{\Sigma}, \mathcal{E})$. We will define these things (at first) using only the constraints we need to present the safety proof with a reasonable degree of rigor. Then we will continue (in this and the next part of the document) to refine[citation to $wikipedia.org/wiki/Refinement_(computing)$] the protocol definition, until anything satisfying it can plausibly be said to be an Byzantine fault tolerant, asynchronously safe consensus protocol. Finally, the example consensus protocols given in Part 3 are constructed to satisfy the definitions, and therefore inherit the safety proof.
+or in the context of Bitcoin,
 
-So first we present the components of the definition of ``estimate safety consensus protocols" that we will use in the consensus safety proof, then we state and prove the consensus safety theorem, and then we continue with the definition's development until we feel like anything satisfying the definition is reasonably a consensus protocol.
+\begin{quote}
+``\emph{if} my Bitcoin client were to decide on the block 7 confirmations deep, it would have consensus safety with your client, \emph{if} our clients used similar criteria to make decisions (with very high probability in a synchronous network with less than some amount of Byzantine hashrate).''
+\end{quote}
+
+So we define the ``estimate safety consensus protocol'' to be a tuple $(\cat{C}, \mathcal{L}_\cat{C}, \cat{\Sigma}, \mathcal{E})$. We first define these components using only the minimum constraints needed to present the safety proof with a reasonable degree of rigor. In this and the subsequent section, we then continue to refine[CITE $wikipedia.org/wiki/Refinement_(computing)$] the protocol definition, until anything satisfying it can plausibly be said to be a Byzantine fault tolerant, asynchronously safe consensus protocol. Finally, the example consensus protocols given in Part 3 are constructed to satisfy the definitions and, therefore, inherit the safety proof.
+
+Now we present the components of the definition of ``estimate safety consensus protocols'', then we state and prove the consensus safety theorem, and then we refine the definition until anything satisfying the definition is reasonably a consensus protocol.
 
 \vspace{5mm}
 
