@@ -128,14 +128,14 @@ Now we present the components of the definition of ``estimate safety consensus p
 
 \begin{align*}
 \cat{C}, & &&\text{the set of possible values of the consensus}\\
-\mathcal{L}_\cat{C}, & &&\text{a logic with propositions $props(\mathcal{L}_\cat{C})$ that are satisfied (or not) by the elements of $\cat{C}$}\\
-\cat{\Sigma}, & &&\text{the category of protocol executions, with objects $ob(\cat{\Sigma})$ called ``protocol states"}\\
-\mathcal{E} : ob(\cat{\Sigma}) \to props(\mathcal{L}_\cat{C}), & &&\text{a function called the ``estimator"} 
+\mathcal{L}_\cat{C}, & &&\text{a logic with propositions, $props(\mathcal{L}_\cat{C})$, that are satisfied (or not) by the elements of $\cat{C}$}\\
+\cat{\Sigma}, & &&\text{the category of protocol executions, with objects $ob(\cat{\Sigma})$ called ``protocol states''}\\
+\mathcal{E} : ob(\cat{\Sigma}) \to props(\mathcal{L}_\cat{C}), & &&\text{a function called the ``estimator''}
 \end{align*}
 
-We aren't going to say anything for now about the set of possible values of the consensus, $\cat{C}$.
+For now, we say nothing about the set of possible values of the consensus, $\cat{C}$.
 
-The logic $\mathcal{L}_\cat{C}$, however, has to have:
+The logic $\mathcal{L}_\cat{C}$, however, must have:
 
 %Consider being more formal in the definition, and add
 %\begin{align*}
@@ -143,36 +143,37 @@ The logic $\mathcal{L}_\cat{C}$, however, has to have:
    
 
 \begin{itemize}
-\item a set of propositions $props(\mathcal{L}_\cat{C})$ which somehow implement maps $p:\cat{C} \to \{True, False\}$, mapping all possible consensus values to ``True" or ``False"
-\item a negation operator $\neg: props(\mathcal{L}_\cat{C}) \to props(\mathcal{L}_\cat{C})$, such that for every $c \in \cat{C}$, $p(c)$ xor $\neg{p}(c)$  
-\item boolean algebra operators ``and" $\land$, ``or" $\lor$, and ``implies" $\Rightarrow$, all defined as normal.
+\item a set of propositions, $props(\mathcal{L}_\cat{C})$, which somehow implement maps $p:\cat{C} \to \{True, False\}$, mapping all possible consensus values to ``True'' or ``False''
+\item a negation operator $\neg: props(\mathcal{L}_\cat{C}) \to props(\mathcal{L}_\cat{C})$, such that for every $c \in \cat{C}$, $p(c)$ xor $\neg{p}(c)$
+\item normally defined boolean algebra operators ``and" $\land$, ``or" $\lor$, and ``implies" $\Rightarrow$
 \end{itemize}
 
-Because of the $\land$ operator, any number of propositions $p_1$, $p_2$, $p_3$..., $p_n$ can be ``compressed" into a single proposition $p_1 \land p_2 \land p_3 ...  \land p_n$ which is only true if each of the propositions are true.
+Using the $\land$ operator, any number of propositions $p_1$, $p_2$, $p_3$\ldots, $p_n$ can be ``compressed'' into a single proposition $p_1 \land p_2 \land p_3\ldots \land p_n$ which is true if and only if each of the propositions is true.
 
-The category of protocol states $\cat{\Sigma}$ is a category (and although no additional information about $\cat{\Sigma}$ is required for Step 1, we will give the category properties and notation that will be relevant to us):
+The category of protocol states $\cat{\Sigma}$ is a category. No additional information about $\cat{\Sigma}$ is required for Step 1, but we define some properties and notation that are subsequently relevant:
 
 \begin{itemize}
-\item $ob(\cat{\Sigma})$, a set of objects called ``protocol states," denoted as $\sigma_1$, $\sigma_2$, $\sigma_3$,...
-\item $mo(\cat{\Sigma})$, a set of morphisms called ``protocol executions": $\tau_1$, $\tau_2$, $\tau_3$,...
-\item such that each execution maps a protocol state to a protocol state $\tau:ob(\cat{\Sigma}) \to ob(\cat{\Sigma})$
-\item if a morphism $\tau$ maps object $\sigma_1$ to object $\sigma_2$ we write $\sigma_1 \xrightarrow[]{\tau} \sigma_2$ 
-\item protocol executions compose as follows, if one execution begins where the other ends: 
+\item $ob(\cat{\Sigma})$, a set of objects called ``protocol states'': $\sigma_1$, $\sigma_2$, $\sigma_3$,\ldots
+\item $mo(\cat{\Sigma})$, a set of morphisms called ``protocol executions'': $\tau_1$, $\tau_2$, $\tau_3$,\ldots
+\item each execution maps a protocol state to a protocol state $\tau:ob(\cat{\Sigma}) \to ob(\cat{\Sigma})$
+\item if a morphism $\tau$ maps object $\sigma_1$ to object $\sigma_2$, we write $\sigma_1 \xrightarrow[]{\tau} \sigma_2$
+\item if one execution begins where the other ends, protocol executions compose as follows:
 $$\sigma_1 \xrightarrow[]{\tau_1} \sigma_2 \land \sigma_2 \xrightarrow[]{\tau_2} \sigma_3 \implies \sigma_1 \xrightarrow[]{\tau_1 \circ \tau_2} \sigma_3$$,
-\item and $mo(\cat{\Sigma})$ is closed under composition: $\tau_1, \tau_2 \in mo(\cat{\Sigma}) \implies \tau_1 \circ \tau_2 \in mo(\cat{\Sigma})$
-\item and there is a unique identity morphism $\tau_0$, ``do nothing", such that: $\sigma_1 \xrightarrow[]{\tau_0} \sigma_2$ $\implies$ $\sigma_2 = \sigma_1$, for all $\sigma_1 \in ob(\cat{\Sigma})$
-\item Finally, we denote $\exists \tau \in mo(\cat{\Sigma}) \hspace{1mm} . \hspace{1mm} \sigma \xrightarrow[]{\tau} \sigma'$ as simply $\sigma \to \sigma'$.
+\item $mo(\cat{\Sigma})$ is closed under composition: $\tau_1, \tau_2 \in mo(\cat{\Sigma}) \implies \tau_1 \circ \tau_2 \in mo(\cat{\Sigma})$
+\item there exists a unique identity morphism $\tau_0$, ``do nothing'', such that: $\sigma_1 \xrightarrow[]{\tau_0} \sigma_2$ $\implies$ $\sigma_2 = \sigma_1$, for all $\sigma_1 \in ob(\cat{\Sigma})$
+\item we denote $\exists \tau \in mo(\cat{\Sigma}) \hspace{1mm} . \hspace{1mm} \sigma \xrightarrow[]{\tau} \sigma'$ simply as $\sigma \to \sigma'$
 \end{itemize}
 
 
-Finally, the estimator map $\mathcal{E}: ob(\cat{\Sigma}) \to props(\mathcal{L}_\cat{C})$ has the property that
+Finally, the estimator map $\mathcal{E}: ob(\cat{\Sigma}) \to props(\mathcal{L}_\cat{C})$ has the following property:
 \begin{itemize}
 \item if $\mathcal{E}(\sigma) \Rightarrow p$, then $\neg{(\mathcal{E}(\sigma) \Rightarrow \neg p)}$ for all $p \in props(\mathcal{L}_\cat{C})$ and $\sigma \in ob(\cat{\Sigma})$.
 \end{itemize}
 
-We will now briefly pause the (still incomplete) process of giving the definition of estimate safety consensus protocols.
+We now pause the (still incomplete) process of giving the definition of estimate safety consensus protocols.
 \end{description}
 \end{defn}
+
 
 From now on, any variable named with lower case letter ``$p$'' will be a proposition of $\mathcal{L}_\cat{C}$ and thereby implicitly satisfy $p \in props(\mathcal{L}_\cat{C})$ and variables named with ``$\sigma$'' will be a objects from the protocol executions category $\cat{\Sigma}$ and hence will implicitly satisfy $\sigma \in ob(\cat{\Sigma})$
 
