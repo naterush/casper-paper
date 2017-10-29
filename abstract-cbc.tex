@@ -184,12 +184,12 @@ From now on, any variable named with lower case letter ``$p$'' will be a proposi
 A proposition $p$ is said to have \emph{estimate safety} in a protocol state $\sigma$ if 
 
 $$
-\forall \sigma' \hspace{1mm}.\hspace{1mm} \sigma \to \sigma' \implies \mathcal{E}(\sigma') \Rightarrow p
+\forall \sigma':\sigma \to \sigma',\hspace{1.5mm} \mathcal{E}(\sigma') \Rightarrow p
 $$
 \end{description}
 \end{defn}
 
-We will often refer to this simply as ``safety'', and we denote safety on $p$ at $\sigma$ as $S(p,\sigma)$, and the absense of safety on $p$ at $\sigma$ as $\neg{S(p,\sigma)}$.
+We refer to this simply as ``safety'', and we denote safety on $p$ at $\sigma$ as $S(p,\sigma)$, and the absense of safety on $p$ at $\sigma$ as $\neg{S(p,\sigma)}$.
 
 Estimate safety consensus protocols have the property that ``nodes'' only make ``decisions" on a proposition $p$ when they are in a protocol state $\sigma$ that is safe on $p$; $S(p,\sigma)$. (We will have more discussion later about what nodes are, and on how nodes can tell when they have estimate safety.)
 
