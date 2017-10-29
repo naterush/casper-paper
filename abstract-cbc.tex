@@ -165,7 +165,7 @@ $$\sigma_1 \xrightarrow[]{\tau_1} \sigma_2 \land \sigma_2 \xrightarrow[]{\tau_2}
 \end{itemize}
 
 
-Finally, the estimator map $\mathcal{E}: ob(\cat{\Sigma}) \to props(\mathcal{L}_\cat{C})$ has the following property:
+Finally, the estimator map $\mathcal{E}: ob(\cat{\Sigma}) \to props(\mathcal{L}_\cat{C})$ has the following ``consistency'' property:
 \begin{itemize}
 \item if $\mathcal{E}(\sigma) \Rightarrow p$, then $\neg{(\mathcal{E}(\sigma) \Rightarrow \neg p)}$ for all $p \in props(\mathcal{L}_\cat{C})$ and $\sigma \in ob(\cat{\Sigma})$.
 \end{itemize}
@@ -248,21 +248,18 @@ $$
 \end{description}
 \end{thm}
 
-Before we prove the theorem or discuss its utility and significance, we will first present and prove three lemmas.
+Before we prove the theorem or discuss its utility and significance, we first present and prove three lemmas.
 
 \vspace{5mm}
 
 \begin{lemma}[Forwards safety]
 $$
-\forall \sigma' \hspace{1mm}.\hspace{1mm} \sigma \to \sigma' \land S(p,\sigma) \implies S(p,\sigma').
+\forall \sigma':\sigma \to \sigma',\hspace{1.5mm} S(p,\sigma) \implies S(p,\sigma')
 $$
 \end{lemma}
 
-This lemma says that if the protocol is safe on $p$ at state $\sigma$, it will also be safe on $p$ for all future protocol states.
+This lemma asserts that if the protocol is safe on $p$ at state $\sigma$, it will also be safe on $p$ for all future protocol states. Intuitively, $p$ holds for all futures $\sigma'$ of $\sigma$. The futures of $\sigma'$ are also futures of $\sigma$, so we can see that $p$ will also hold in the futures of $\sigma'$.
 
-Intuitively, $p$ holds for all futures $\sigma'$ of $\sigma$, and the futures of $\sigma'$ are also futures of $\sigma$, so we can see that $p$ will also hold in the futures of $\sigma'$. 
-
-Here is a rigorous version of the argument:
 \begin{proof}
 Assuming that $\sigma \to \sigma'$ for arbitrary $\sigma'$ and $S(p, \sigma)$, we want to show that $S(p, \sigma')$.
   \begin{align*}
@@ -283,17 +280,17 @@ S(p,\sigma) \implies \neg{S(\neg{p},\sigma)}.
 $$
 \end{lemma}
 
-The lemma says that if $p$ is safe in $\sigma$, then its negation $\neg{p}$ is not safe in that same state $\sigma$. It says that we can't have contradictory propositions (i.e. $p$ and $\neg{p}$) both be safe at the same state $\sigma$. This result will follow from the consistency property of $\mathcal{E}$ and the definition of $S$.
+This lemma asserts that if $p$ is safe in $\sigma$, then its negation $\neg{p}$ is not safe in that same state $\sigma$. It says that we cannot have contradictory propositions (i.e. $p$ and $\neg{p}$) both be safe in the same state $\sigma$. This result follows from the consistency property of $\mathcal{E}$ and the definition of $S$.
 
 \begin{proof}
-  Assuming that $S(p,\sigma)$, we aim to show that $\neg{S(\neg{p},\sigma)}$
+  Assuming that $S(p,\sigma)$, we show that $\neg{S(\neg{p},\sigma)}$
   \begin{align*}
     &\sigma \to \sigma &&\text{(existence of the identity morphism  $\sigma \xrightarrow[]{\tau_0} \sigma$)} &&\text{(1)} \\
     &\forall \sigma' \hspace{1mm}.\hspace{1mm}\sigma \to \sigma' \implies \mathcal{E}(\sigma') \Rightarrow p &&\text{(introducing assumption $S(p, \sigma)$ by its definition) }   &&\text{(2)} \\
     &\mathcal{E}(\sigma) \Rightarrow p &&\text{(follows from (1) and (2), by modus ponens with substitution $\sigma' = \sigma$)} &&\text{(3)}\\
     &\mathcal{E}(\sigma) \Rightarrow p \implies \neg{(\mathcal{E}(\sigma) \Rightarrow \neg{p})} &&\text{(a property of $\mathcal{E}$ for any arguments, by definition)}  &&\text{(4)} \\
     &\neg{(\mathcal{E}(\sigma) \Rightarrow \neg{p})} &&\text{(follows from (3) and (4), by modus ponens)} &&\text{(5)}\\
-    &S(\neg{p},\sigma) \implies \mathcal{E}(\sigma) \Rightarrow \neg{p} &&\text{(as in steps (1-3))}   &&\text{(6)} \\
+    &S(\neg{p},\sigma) \implies \mathcal{E}(\sigma) \Rightarrow \neg{p} &&\text{(as in steps (1-3) but applied to $\neg{p}$)}   &&\text{(6)} \\
     &\neg{(\mathcal{E}(\sigma) \Rightarrow \neg{p})} \implies \neg{S(\neg{p},\sigma)} &&\text{(the contrapositive of (6))}  &&\text{(7)} \\
     &\neg{S(\neg{p},\sigma)}  \hspace{5mm} \qedhere&&\text{(follows from (5) and (7), by modus ponens)}   &&\text{(8)}
   \end{align*}
