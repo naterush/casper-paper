@@ -189,11 +189,11 @@ $$
 \end{description}
 \end{defn}
 
-We refer to this simply as ``safety'', and we denote safety on $p$ at $\sigma$ as $S(p,\sigma)$, and the absense of safety on $p$ at $\sigma$ as $\neg{S(p,\sigma)}$.
+We refer to this simply as ``safety'', and we denote safety on $p$ at $\sigma$ as $S(p,\sigma)$ and the absense of safety on $p$ at $\sigma$ as $\neg{S(p,\sigma)}$.
 
-Estimate safety consensus protocols have the property that ``nodes'' only make ``decisions" on a proposition $p$ when they are in a protocol state $\sigma$ that is safe on $p$; $S(p,\sigma)$. (We will have more discussion later about what nodes are, and on how nodes can tell when they have estimate safety.)
+Estimate safety consensus protocols have the property that ``nodes'' only make ``decisions'' on a proposition $p$ when they are in a protocol state $\sigma$ that is safe on $p$; $S(p,\sigma)$.\footnote{Further discussion on what nodes are and how nodes can tell they have estimate safety follows in subsequent sections.}
 
-Before we look at the theorem we have set out to prove in this part of the document, I want mention and give notation for the theorem's assumption: That a pair of states $\sigma_1$, $\sigma_2$ have a common future protocol state. Since we will refer to this property now and again repeatedly later in the document, we will denote this relationship as $\sigma_1 \sim \sigma_2$.
+Before we present the consensus safety theorem, we provide some useful notation for the theorem's assumption: 'that a pair of states $\sigma_1$, $\sigma_2$ have a common future protocol state.' To more easily refer to this property, we denote this relationship as $\sigma_1 \sim \sigma_2$.
 
 \begin{defn}[$\sigma_1 \sim \sigma_2$]
 \begin{equation*}
@@ -215,7 +215,7 @@ Before we look at the theorem we have set out to prove in this part of the docum
 \sigma_1 \sim \sigma_2
   \arrow[r,Leftrightarrow, "def"]
   &
-\exists \sigma_3 \hspace{1mm}. 
+\exists \sigma_3:(\sigma_1 \to \sigma_3) \land (\sigma_2 \to \sigma_3)
   &
 {}  
   &
