@@ -325,7 +325,7 @@ The intuitive approach is to prove the lemma by contradition: If we assume for c
 
 \vspace{5mm}
 
-We are now finally ready to give the proof of the distributed consensus safety theorem. But before we look at the proof, lets do a quick overview. We are going to show that $\sigma_1 \sim \sigma_2$ means that the nodes with these states are consensus safe. $\sigma_1 \sim \sigma_2$ means that there eixsts a $\sigma_3$ such that..
+Equipped with Lemmas 1, 2, and 3, we now present the proof of the distributed consensus safety theorem. We show that $\sigma_1 \sim \sigma_2$ implies that the nodes with these states are consensus safe. $\sigma_1 \sim \sigma_2$ means that there exits a $\sigma_3$ such that\ldots
 
 
 \begin{equation*}
@@ -394,22 +394,22 @@ S(p,\sigma_1)
 \end{tikzcd}
 \end{equation*}
 
-The safety proof (illustrated above) uses lemma 1 (Future safety) between $\sigma_1$ and $\sigma_3$, and lemma 3 (Backwards consistency) for $\sigma_3$ and $\sigma_2$, to conclude that $S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)}$. This property is (it turns out) equivalent to $\neg{(S(p,\sigma_1)\land S(\neg{p},\sigma_2))}$. The logic is shown in this proof:
+The safety proof (illustrated above) uses Lemma 1 (Future safety) between $\sigma_1$ and $\sigma_3$, and Lemma 3 (Backwards consistency) for $\sigma_3$ and $\sigma_2$, to conclude that $S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)}$. As it turns out, this property is equivalent to $\neg{(S(p,\sigma_1)\land S(\neg{p},\sigma_2))}$.
 
 
 \begin{proof}
 Theorem 1 (Consensus safety: $\sigma_1 \sim \sigma_2$ $\implies$ $\neg(S(p,\sigma_1) \land S(\neg{p},\sigma_2))$)
 \begin{align*}
-  &\exists \sigma_3 \hspace{1mm} . \hspace{1mm} \sigma_1 \to \sigma_3 \land \sigma_2 \to \sigma_3 &&\text{(introducing assumption $\sigma_1 \sim \sigma_2$ by its definition)} &&\text{(1)} \\
-  &S(p,\sigma_1) \implies S(p,\sigma_3) &&\text{(follows from $\sigma_1 \to \sigma_3$ in (1) and Lemma 1, by modus ponens)} &&\text{(2)} \\
-  &S(p,\sigma_3) \implies \neg{S(\neg{p},\sigma_2)} &&\text{(follows from $\sigma_2 \to \sigma_3$ in (1) and Lemma 3, by modus ponens)} &&\text{(3)} \\
+  &\exists \sigma_3:(\sigma_1 \to \sigma_3) \land (\sigma_2 \to \sigma_3) &&\text{(introducing assumption $\sigma_1 \sim \sigma_2$ by its definition)} &&\text{(1)} \\
+  &S(p,\sigma_1) \implies S(p,\sigma_3) &&\text{(follows from $\sigma_1 \to \sigma_3$ in (1) and Lemma 1)} &&\text{(2)} \\
+  &S(p,\sigma_3) \implies \neg{S(\neg{p},\sigma_2)} &&\text{(follows from $\sigma_2 \to \sigma_3$ in (1) and Lemma 3)} &&\text{(3)} \\
   &S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)} &&\text{(implied by (2) and (3), by hypothetical syllogism)} &&\text{(4)} \\
   &\neg{S(p,\sigma_1)} \lor \neg{S(\neg{p},\sigma_2)} &&\text{(equivalent to (4), by material implication)} &&\text{(5)} \\
   &\neg(S(p,\sigma_1) \land S(\neg{p},\sigma_2)) \hspace{5mm} \qedhere &&\text{(equivalent to (5), by De Morgan's law)}&&\text{(6)}
 \end{align*}
 \end{proof}
 
-Line (4) of the proof is perhaps the most useful thing to understand. Important enough to be called a lemma and named ``Distributed consistency":
+Line (4) of the proof provides a key insight and is important enough to be called a lemma, named ``Distributed consistency'':
  
 \begin{lemma}[$\sigma_1 \sim \sigma_2$ $\implies$ Distributed consistency]
 $$
