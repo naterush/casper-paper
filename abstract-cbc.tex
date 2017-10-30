@@ -305,21 +305,21 @@ The lemma says that if $p$ is safe in $\sigma$, then its negation $\neg{p}$ is n
 
 \begin{lemma}[Backwards consistency]
 $$
-\forall \sigma' \hspace{1mm}.\hspace{1mm} \sigma' \to \sigma \land S(p,\sigma) \implies \neg{S(\neg{p},\sigma')}
+\forall \sigma:\sigma \to \sigma',\hspace{1.5mm} S(p,\sigma') \implies \neg{S(\neg{p},\sigma)}
 $$
 \end{lemma}
 
-This lemma asserts that if some $p$ is safe at state $\sigma$, then its negation is not safe at any \emph{previous} state $\sigma'$.
+This lemma asserts that if some $p$ is safe at state $\sigma'$, then its negation is not safe at any \emph{previous} state $\sigma$.
 
-The intuitive approach is to prove the lemma by contradition: If we assume for contradiction that in fact a previous state was safe on $\neg{p}$, then it follows (using forward safety) $\neg{p}$ is still safe. This contradicts the assumption that $p$ is safe, so we can conclude that $\neg{p}$ is not safe: $\neg{S(\neg{p},\sigma')}$. Here is the more detailed proof:
+The intuitive approach is to prove the lemma by contradition: If we assume for contradiction that a previous state, $\sigma$, was safe on $\neg{p}$, then it follows (using forward safety) $\neg{p}$ is still safe in future state, $\sigma'$. This contradicts the assumption that $p$ is safe in state $\sigma'$, so we can conclude that $\neg{p}$ is not safe: $\neg{S(\neg{p},\sigma)}$.
 
 \begin{proof}
-  Assuming that $\sigma' \to \sigma$ for an arbirary $\sigma'$ and $S(p,\sigma)$, we want to show that $\neg{S(\neg{p},\sigma')}$
+  Assuming that $\sigma \to \sigma'$ for an arbitrary $\sigma$ and $S(p,\sigma')$, we show that $\neg{S(\neg{p},\sigma')}$
   \begin{align*}
-    &S(\neg{p},\sigma') \implies S(\neg{p},\sigma) &&\text{(from assumption $\sigma' \to \sigma$ and lemma 1, by modus ponens) }   &&\text{(1)} \\
-    &S(\neg{p},\sigma) \implies \neg{S(p,\sigma)} &&\text{(lemma 2) }   &&\text{(2)} \\
-    &S(\neg{p},\sigma') \implies \neg{S(p,\sigma)} &&\text{(follows from (1) and (2), by hypothetical syllogism)} &&\text{(3)} \\
-    &S(p,\sigma) \implies \neg{S(\neg{p},\sigma')} \hspace{5mm} \qedhere &&\text{(contrapositive of (3))} &&\text{(4)} \hspace{5mm}
+    &S(\neg{p},\sigma) \implies S(\neg{p},\sigma') &&\text{(from assumption $\sigma \to \sigma'$ and lemma 1)}   &&\text{(1)} \\
+    &S(\neg{p},\sigma') \implies \neg{S(p,\sigma')} &&\text{(lemma 2 applied to $\sigma'$) }   &&\text{(2)} \\
+    &S(\neg{p},\sigma) \implies \neg{S(p,\sigma')} &&\text{(follows from (1) and (2), by hypothetical syllogism)} &&\text{(3)} \\
+    &S(p,\sigma') \implies \neg{S(\neg{p},\sigma)} \hspace{5mm} \qedhere &&\text{(contrapositive of (3))} &&\text{(4)} \hspace{5mm}
   \end{align*}
 \end{proof}
 
