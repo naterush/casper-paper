@@ -325,7 +325,7 @@ The intuitive approach is to prove the lemma by contradition: If we assume for c
 
 \vspace{5mm}
 
-We are now finally ready to give the proof of the distributed consensus safety theorem. But before we look at the proof, lets do a quick overview. We are going to show that $\sigma_1 \sim \sigma_2$ means that the nodes with these states are consensus safe. $\sigma_1 \sim \sigma_2$ means that there eixsts a $\sigma_3$ such that..
+Equipped with Lemmas 1, 2, and 3, we now present the proof of the distributed consensus safety theorem. We show that $\sigma_1 \sim \sigma_2$ implies that the nodes with these states are consensus safe. $\sigma_1 \sim \sigma_2$ means that there exits a $\sigma_3$ such that\ldots
 
 
 \begin{equation*}
@@ -394,43 +394,41 @@ S(p,\sigma_1)
 \end{tikzcd}
 \end{equation*}
 
-The safety proof (illustrated above) uses lemma 1 (Future safety) between $\sigma_1$ and $\sigma_3$, and lemma 3 (Backwards consistency) for $\sigma_3$ and $\sigma_2$, to conclude that $S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)}$. This property is (it turns out) equivalent to $\neg{(S(p,\sigma_1)\land S(\neg{p},\sigma_2))}$. The logic is shown in this proof:
+The safety proof (illustrated above) uses Lemma 1 (Future safety) between $\sigma_1$ and $\sigma_3$, and Lemma 3 (Backwards consistency) for $\sigma_3$ and $\sigma_2$, to conclude that $S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)}$. As it turns out, this property is equivalent to $\neg{(S(p,\sigma_1)\land S(\neg{p},\sigma_2))}$.
 
 
 \begin{proof}
 Theorem 1 (Consensus safety: $\sigma_1 \sim \sigma_2$ $\implies$ $\neg(S(p,\sigma_1) \land S(\neg{p},\sigma_2))$)
 \begin{align*}
-  &\exists \sigma_3 \hspace{1mm} . \hspace{1mm} \sigma_1 \to \sigma_3 \land \sigma_2 \to \sigma_3 &&\text{(introducing assumption $\sigma_1 \sim \sigma_2$ by its definition)} &&\text{(1)} \\
-  &S(p,\sigma_1) \implies S(p,\sigma_3) &&\text{(follows from $\sigma_1 \to \sigma_3$ in (1) and Lemma 1, by modus ponens)} &&\text{(2)} \\
-  &S(p,\sigma_3) \implies \neg{S(\neg{p},\sigma_2)} &&\text{(follows from $\sigma_2 \to \sigma_3$ in (1) and Lemma 3, by modus ponens)} &&\text{(3)} \\
+  &\exists \sigma_3:(\sigma_1 \to \sigma_3) \land (\sigma_2 \to \sigma_3) &&\text{(introducing assumption $\sigma_1 \sim \sigma_2$ by its definition)} &&\text{(1)} \\
+  &S(p,\sigma_1) \implies S(p,\sigma_3) &&\text{(follows from $\sigma_1 \to \sigma_3$ in (1) and Lemma 1)} &&\text{(2)} \\
+  &S(p,\sigma_3) \implies \neg{S(\neg{p},\sigma_2)} &&\text{(follows from $\sigma_2 \to \sigma_3$ in (1) and Lemma 3)} &&\text{(3)} \\
   &S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)} &&\text{(implied by (2) and (3), by hypothetical syllogism)} &&\text{(4)} \\
   &\neg{S(p,\sigma_1)} \lor \neg{S(\neg{p},\sigma_2)} &&\text{(equivalent to (4), by material implication)} &&\text{(5)} \\
   &\neg(S(p,\sigma_1) \land S(\neg{p},\sigma_2)) \hspace{5mm} \qedhere &&\text{(equivalent to (5), by De Morgan's law)}&&\text{(6)}
 \end{align*}
 \end{proof}
 
-Line (4) of the proof is perhaps the most useful thing to understand. Important enough to be called a lemma and named ``Distributed consistency":
+Line (4) of the proof provides a key insight and is important enough to be called a lemma, named ``Distributed consistency'':
  
 \begin{lemma}[$\sigma_1 \sim \sigma_2$ $\implies$ Distributed consistency]
 $$
-\sigma_1 \sim \sigma_2 \implies \hspace{2mm} S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)} \hspace{2mm}
+\sigma_1 \sim \sigma_2 \implies \hspace{2mm} (S(p,\sigma_1) \implies \neg{S(\neg{p},\sigma_2)})
 $$
 \end{lemma}
 
-It's a property not unlike Lemmas 2 and 3 (current consistency and backwards consistency), however it applies to protocol states for which neither $\sigma_1 \to \sigma_2$ nor $\sigma_2 \to \sigma_1$. It means that decisions made at $\sigma_1$ are consistent with decisions made for \emph{all} protocol states $\sigma_2$, at least if $\sigma_1 \sim \sigma_2$.
+This property is not unlike Lemmas 2 and 3 (current consistency and backwards consistency), however it applies to protocol states for which neither $\sigma_1 \to \sigma_2$ nor $\sigma_2 \to \sigma_1$. It means that decisions made at $\sigma_1$ are consistent with decisions made for \emph{all} protocol states $\sigma_2$, at least if $\sigma_1 \sim \sigma_2$.
 
-However (fortunately and unfortunately), there is a good reason that it can't be that $\sigma \sim \sigma'$ for all pairs of states. 
-
-All consensus protocols require that nodes are able to make decisions on mutually exclusive outcomes. Estimate safety consensus protocols only make decisions on safe estimates, but we haven't yet required that it's possible to have inconsistent safe estimates. So will continue our definition so we satisfy the non-triviality constraint.
+However (fortunately and unfortunately), $\sigma_1 \sim \sigma_2$ cannot hold for all pairs of states---a property called ``non-triviality.'' All consensus protocols require that nodes be able to make decisions on mutually exclusive outcomes. Estimate safety consensus protocols only make decisions on safe estimates, but we have not yet introduced the possibility of inconsistent safe estimates. We continue our definition to satisfy the non-triviality constraint.
 
 \begin{defn}[Estimate Safety Consensus Protocols: Part 2 of ?]
 \begin{description}
 
-In addition to the properties given earlier, estimate safety consensus protocols have the following property:
+In addition to the earlier properties, estimate safety consensus protocols also have the following:
 
 \item[(Non-triviality)]
 
-There exist a proposition $p$ and three protocol states $\sigma_1$, $\sigma_2$ such that $S(p,\sigma_1) \land S(\neg{p},\sigma_2)$, and there exists some state $\sigma_0$ which has a protocol execution to each of them:
+There exist a proposition $p$ and two protocol states $\sigma_1$, $\sigma_2$ such that $S(p,\sigma_1) \land S(\neg{p},\sigma_2)$, and there exists some state $\sigma_0$ which has a protocol execution to each of them:
 
 \begin{equation*}
 \begin{tikzcd}
@@ -451,7 +449,7 @@ There exist a proposition $p$ and three protocol states $\sigma_1$, $\sigma_2$ s
 \end{description}
 \end{defn}
 
-This part of the definition constrains the things that satisfy the proof, and will make things interesting because of the following result:
+This part of the definition constrains the domain of the proof, and makes things interesting due to the following result:
 
 \begin{lemma}[Maintaining a shared future is non-trivial]
 $$
