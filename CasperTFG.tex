@@ -57,24 +57,26 @@ This work gives a specification and limited experimental observations of a block
 
 The protocol uses an adaptation of Y. Jompolovsky and A. Zohar's Greedy Heaviest Observed Sub-tree (Ghost) as ``a fork-choice rule''. It it able to finalize/decide on blocks with asynchronous and Byzantine fault tolerant consensus safety. It allows blocks to be finalized while the network operates with the network overhead of the Bitcoin blockchain, wich each node receiving $\mathcal{O}(1)$ messages/block. This is contrast to the $\mathcal{O}(N)$ traditionally required for Byzantine fault tolerant state machine replication.
 
-For pedogological reasons, the document first specifies a binary consensus protocol (which decides on a bit, $0$ or $1$), a protocol that satisfies the same consensus safety proof as the blockchain consensus protocol (and is therefore very similar to the blockchain consensus protocol). 
+For pedogological reasons, the document first specifies a binary consensus protocol (which decides on a bit, $0$ or $1$). This is a consensus protocol that satisfies the same consensus safety proof as the blockchain consensus protocol (and is therefore very similar to the blockchain consensus protocol). 
 \end{abstract}
 
 \section{Introduction}
 
-Consensus protocols are used by nodes in distributed systems to decide on the same values, or on the same list of inputs to a replicated state machine. There are, roughly speaking, two classes of consensus protocols known today. One we refer to as ``traditional consensus''. This class has its ``genetic roots'' in Paxos and multi-Paxos[CITE], and in the ``traditional'' consensus protocol research from the 80s and 90s[CITE]. The other we refer to as ``blockchain consensus''. These are protocols that have their roots in the Bitcoin blockchain and Satoshi Nakamoto's whitepaper[CITE].  We now discuss the differences between these classes of protocols, before giving an overview of the safety proof, and then finally specifying the consensus protocols at hand.
+Consensus protocols are used by nodes in distributed systems to decide on the same consensus values, or on the same list of inputs to a replicated state machine. This is a challenging problem because of network latency and because of the presence of faulty nodes. Arbitrary network latency, for example, means that nodes recieve distinct sets of messages, while the messages that they each received may have arrive in different orders. Faulty nodes may go offline, or they may behave in an arbitrary manner. 
+
+There are, roughly speaking, two broad classes of consensus protocols known today. One we refer to as ``traditional consensus''. This class has its ``genetic roots'' in Paxos and multi-Paxos[CITE], and in the ``traditional'' consensus protocol research from the 80s and 90s[CITE]. The other we refer to as ``blockchain consensus''. These are protocols that have their roots in the Bitcoin blockchain and Satoshi Nakamoto's whitepaper[CITE]. We will first discuss the differences between these classes of protocols. Then we will give an overview of the safety proof that the protocols given in this document satisfy, and then finally the specifications of the protocols at hand.
 
 \subsection{Comparing Traditional Consensus to Blockchain Consensus}
 
 Traditional consensus protocols (such as multi-Paxos and pbft) are notoriously difficult to understand[CITE (http://paxos.systems/)]. Blockchain consensus protocols, on the other hand, are much more accessible. This difference comes at least in part from the relative simplicity of Bitcoin's specification[CITE].
 
-In the context of state machine replication, traditional protocols decide (with irrevocable finality) in sequence on one ``block'' of state transitions/transactions to add to the shared operation log at a time. To decide on a block, each node requires $\mathcal{O}(N)$ messages, where $N$ is the number of consensus-forming nodes.
+In the context of state machine replication, traditional protocols decide (with irrevocable finality) on one ``block'' of state transitions/transactions to add to the shared operation log at a time. To decide on a block, a node must receive $\mathcal{O}(N)$ messages, where $N$ is the number of consensus-forming nodes.
 
-Blockchain consensus protocols like Bitcoin do not finalize/decide on one block one at a time. In fact, the Bitcoin blockchain in particular does not make ``finalized decisions'' at all; blocks are ``orphaned'' if/when they are not in the highest total difficulty chain. However, if the miners are able to mine on the same blockchain, then the blocks that get deep enough into the blockchain won't be reverted (``orphaned''). Thus, block-depth serves as a proxy for finalization. In the average case for blockchain consensus protocols, each node only requires approximately one message, $\mathcal{O}(1)$, for every block.
+Blockchain consensus protocols like Bitcoin do not finalize/decide on one block one at a time. In fact, the Bitcoin blockchain in particular does not make ``finalized decisions'' at all; blocks are ``orphaned'' if/when they are not in the highest total difficulty chain. However, if the miners are able to mine on the same blockchain, then the blocks that get deep enough into the blockchain won't be reverted (``orphaned''). A block's depth in the blockchain therefore serves as a proxy for finalization. In the average case for blockchain consensus protocols, each node only requires approximately one message, $\mathcal{O}(1)$, for every block.
 
-Traditional consensus protocol research has focused on producing protocols that are asynchronously safe (i.e.\ blocks won't be reverted due to arbitrary timing of future events) and live in asynchrony (or partial synchrony) (i.e.\ nodes eventually decide on new blocks). On the other hand, the Bitcoin blockchain are safe and live (for unknown block-depth or ``confirmation count'') in a partially synchronous network.
+Traditional consensus protocol research has focused on producing protocols that are asynchronously safe (i.e.\ blocks won't be reverted due to arbitrary timing of future events) and live in asynchrony (or partial synchrony) (i.e.\ nodes eventually decide on new blocks). On the other hand, the Bitcoin blockchain are not safe or live in an asynchonous network, but are safe and life (for unknown block-depth or ``confirmation count'') in a ``partially synchronous network''.
 
-Traditional Byzantine fault tolerant consensus protocols have precisely stated Byzantine fault tolerance numbers (often $n = 3f + 1$)[CITE]. On the other hand, it is less clear exactly how many faults (measured as a proportion of hashrate) the Bitcoin blockchain protocol can tolerate[CITE].
+Traditional Byzantine fault tolerant consensus protocols have precisely stated Byzantine fault tolerance numbers (often can tolerate less than a third Byzantine faults, or up to $t$ faults when there are $3t + 1$ nodes)[CITE]. On the other hand, it is less clear exactly how many faults (measured as a proportion of hashrate) the Bitcoin blockchain protocol can tolerate[CITE].
 
 \subsection{Overview of the Work Presented here}
 
@@ -82,33 +84,33 @@ The goal of this paper is to give the specification of a consensus protocol, ``C
 
 Understanding the binary consensus protocol makes it much easier to understand the blockchain consensus protocol; the protocols are remarkably similar. They are so similar because they are both ``generated'' in order to satisfy the same consensus safety proof.
 
-Since this process for choosing the protocol specification is not specified or justified here, but in another paper[CITE], this paper will lack information about \emph{why exactly} certain choices were made, or \emph{how exactly} certain claims are proven. Our aim is nonetheless to leave a reader who does not look at the ``process paper'' with clear intuitions about why/how the blockchain protocol works: so, we will cover a high level overview of the safety proof which these protocols satisfy. Then, we will begin the presentation of the promised protocols.
+Since this process for choosing the protocol specification is not specified or justified here, but in another paper[CITE], this paper will lack information about \emph{why exactly} certain choices were made, or \emph{how exactly} certain claims are proven. Our aim is nonetheless to leave a reader who does not look at the ``process paper'' with clear intuitions about why/how the blockchain protocol works. We will therefore the safety proof which these protocols satisfy at a high level. Then, we will begin the presentation of the promised protocols.
 
 \subsection{Consensus Safety Proof}
 
 Each of the protocols presented here will satisfy the same consensus safety proof. (And indeed, any consensus protocol generated by the correct-by-construction process satisfies the same proof.) 
 
-The proof refers to an ``estimator'', which maps protocol states to propositions about the consensus. In the binary consensus, we will instead think of the estimator as a map from protocol states to $0$ or $1$. And, in the blockchain consensus, we will consider the estimator to be a map from protocol states to a blockchain (our ``fork choice'').
+The proof refers to an ``estimator'', which maps protocol states to propositions about the consensus. In the binary consensus, we will instead think of the estimator as a map from protocol states to $0$ or $1$. In the blockchain consensus, on the other hand, we will consider the estimator to be a map from protocol states to a blockchain (our ``fork choice'').
 
 An estimate in the binary consensus ($0$ or $1$) is said to be ``safe'' (have ``estimate safety'') for a particular protocol state if it is returned by the estimator on all future protocol states (meaning all states accessible from that state through any protocol execution). For the blockchain consensus, a block is said to be ``safe'' for a paritcular protocol state if it is also in the fork choice for all future protocol states.
 
-The consensus safety proof shows: decisions on safe estimates have consensus safety (as long as there are not more than $t$ Byzantine faults). 
+The consensus safety proof shows that decisions on safe estimates have consensus safety (as long as there are not more than $t$ Byzantine faults). 
 
-The proof relies on the following key result: If node $1$ with state $\sigma_1$ has safe estimate $e_1$ and another node $2$ with state $\sigma_2$ has safe estimate $e_2$, \emph{and if they have a future state in common $\sigma_3$}, then node $1$ and node $2$'s decisions on $e_1$ and $e_2$ are consistent. The proof of the result is quite simple and follows without much work from the definition of estimate safety. So first the proof shows that decisions on safe estimates are consensus safe \emph{for any pair of nodes who have a future protocol state in common}.
+The proof relies on the following key result: If node $1$ with state $\sigma_1$ has safe estimate $e_1$ and another node $2$ with state $\sigma_2$ has safe estimate $e_2$, \emph{and if they have a future state in common $\sigma_3$}, then node $1$ and node $2$'s decisions on $e_1$ and $e_2$ are consistent. The result is quite simple as it follows without much work from the definition of estimate safety. Specifically, if a state $\sigma$ has a safe estimate $e$, then any future protocol state of $\sigma$, $\sigma'$, is also safe on $e$. So if our states $\sigma_1$ and $\sigma_2$ (with safety on $e_1$ and $e_2$) share a common future, then that future has to be safe on both $e_1$ \emph{and} $e_2$, which means that they are consistent. So this first part of the proof shows that decisions on safe estimates are consensus safe \emph{for any pair of nodes who have a future protocol state in common}.
 
-Next, we have to construct protocols (``protocol states'' with ``state transitions'') which guarantee that nodes will have common future protocol states unless there are more than $t$ Byzantine faults. We will complish this in a few steps.
+Next we aim to construct protocols (``protocol states'' with ``state transitions'') which guarantee that nodes have common future protocol states unless there are more than $t$ Byzantine faults. We have this goal because such a protocol will have consensus safety if there are not more than $t$ such faults, from the result we just discussed. We accomplish this in a few steps.
 
-First, we assume that protocol states are sets of protocol messages and then insist that the union $\sigma_1 \cup \sigma_2$ of any two protocol states $\sigma_1$ and $\sigma_2$ is itself a protocol state. Further, we insist that there is a state transition from each protocol state $\sigma$ to $\sigma' \supset \sigma$ (any superset of $\sigma$). This means that $\sigma_1 \cup \sigma_2$ is a protocol future of $\sigma_1$ and $\sigma_2$, both.
+First, we assume that protocol states are sets of protocol messages and then insist that the union $\sigma_1 \cup \sigma_2$ of any two protocol states $\sigma_1$ and $\sigma_2$ is itself a protocol state. Further, we insist that there is a state transition from each protocol state $\sigma$ to $\sigma' \supset \sigma$ (any superset of $\sigma$). This means that $\sigma_1 \cup \sigma_2$ is a protocol future of $\sigma_1$ and $\sigma_2$.
 
-This assumption by itself lets any two states always have a common future state, which by itself guarantees consensus safety of decisions on safe estimates. But there's a problem: such a protocol fails to satisfy the non-triviality property of consensus. Non-triviality means that the protocol is able to choose between mutually exclusive values. In our context, non-triviality means that there are two protocol states $\sigma_1$ and $\sigma_2$ that are each safe on two mutually exclusive estimates. But two protocol states with mutually exclusive safe estimates cannot have a common future, but we just insisted that $\sigma_1 \cup \sigma_2$ would be such a common future. This contradiction means that we haven't yet satisfied non-triviality.
+This assumption by itself lets any two states always have a common future state, which by itself guarantees consensus safety of decisions on safe estimates. But there's a problem: such a protocol fails to satisfy the non-triviality property of consensus. Non-triviality means that the protocol is able to choose between mutually exclusive values. In our context, non-triviality means that there are two protocol states $\sigma_1$ and $\sigma_2$ that are each safe on two mutually exclusive estimates. But two protocol states with mutually exclusive safe estimates cannot have a common future, and we just insisted that $\sigma_1 \cup \sigma_2$ would be such a common future. This contradiction means that we haven't yet satisfied non-triviality, as claimed.
 
-We will instead be sure that $\sigma_1$ and $\sigma_2$ have common a future \emph{only as long as there are less than $t$ Byzantine faults in $\sigma_1 \cup \sigma_2$}. This will let us have states without shared protocol futures (allowing non-triviality), but still allow us to have consensus safety from our previous result (although now only as long as there are less than $t$ Byzantine faults).
+So we will instead be sure that $\sigma_1$ and $\sigma_2$ have common a future \emph{only as long as there are less than $t$ Byzantine faults in $\sigma_1 \cup \sigma_2$}. This will let us have states without shared protocol futures (allowing non-triviality), but still allow us to have consensus safety from our previous result (although now only as long as there are less than $t$ Byzantine faults).
 
-So the next step is to give a process that counts ``the number of Byzantine faults'' that are evidenced in any given protocol state. In the final step we define a ``new version'' of our initial protocol by excluding states with more than $t$ Byzantine faults, using the process from the previous step.
+So our next step is to give a process that counts ``the number of Byzantine faults'' that are evidenced in any given protocol state. In the final step we define a ``new version'' of our initial protocol by excluding states with more than $t$ such faults, using the process from the previous step.
 
-And indeed, both of the protocols specified here have the property that for any pair of protocol states $\sigma_1$ and $\sigma_2$, their union $\sigma_1 \cup \sigma_2$ is also a protocol state if it does not have more than $t$ faults.
+And indeed, both of the protocols specified here will have the property that the union of any pair of protocol states $\sigma_1$ and $\sigma_2$, $\sigma_1 \cup \sigma_2$, is a protocol state if and only if it does not have more than $t$ Byzantine faults.
 
-So the nodes who decide on safe estimates have consensus safety if there is less than $t$ Byzantine faults. And this required saying almost nothing about the estimator! :)
+The final result is that nodes who decide on safe estimates have consensus safety if there is less than $t$ Byzantine faults, which is what was wanted. And all this required saying almost nothing about the estimator! :)
 
 
 \section{Casper the Friendly Binary Consensus}
@@ -281,9 +283,10 @@ We now have the language required to define the estimator for the blockchain con
 
 Byzantine fault detection is defined here in precisely the same way as in the binary consensus. We will therefore not give the definitions again. Finally, the protocol states $\Sigma \subset \mathcal{M}$ similarly will have $M \in \Sigma \implies F(M) < t$, and the protocol will (as with the binary consensus) thereby have consensus safety that tolerates up to $t$ Byzantine faults.
 
-
 \section{Safety Oracles}
+
 \section{Validator Rotation}
+
 \section{Liveness Considerations}
 
 \end{document}
