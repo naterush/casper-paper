@@ -115,105 +115,134 @@ The final result is that nodes who decide on safe estimates have consensus safet
 
 \section{Casper the Friendly Binary Consensus}
 
-We will specify the Binary consensus protocol by first defining protocol messages, then by defining the estimator (which maps sets of protocol messages to $0$ or $1$). 
+We will specify the Binary consensus protocol by first defining protocol messages, then by defining the estimator (which maps sets of protocol messages to $0$ or $1$). Next we will give a way to count Byzantine faults, and finally define the ``protocol states'' and ``protocol state transitions'' that are allowed in Casper the Friendly Binary Cosnensus.
 
 The definition of ``protocol messages'' is parametric in a set of ``validator names'' $\mathcal{V}$, which are identified as the names of the consensus forming nodes.
 
-Protocol messages have three parts. An ``estimate'' (a $0$ or a $1$), the ``sender'' (a validator name), and a ``justification''. The justification is itself a set protocol message. The idea with the protocol message definition is that the message's ``estimate'' will be the result of applying the estimator on the message's ``justification''.
+Protocol messages have three parts. An ``estimate'' (a $0$ or a $1$), the ``sender'' (a validator name), and a ``justification''. The justification is itself a set protocol message. The idea with the protocol message definition is that the validators will use these messages to update each other on their current estimates. Further, the estimate values will not be arbitrary because a protocol message will only be ``valid'' only if ``estimate'' is the result of applying the estimator on the message's ``justification''. 
 
-So, to be more formal and explicit, protocol messages for the binary consensus have the following form:
+The definitions of the estimator and of validity will appear later. For now, we will denote the set of all possible protocol messages in the binary consensus protocol as $\mathcal{M}$, and define it as follows:
 
-\begin{equation}
+\begin{defn}[Protocol Messages, $\mathcal{M}$]
+\begin{equation*}
 \begin{split}
     \mathcal{M}_0 &= \{0, 1\} \times V \times \{\emptyset\}\\
     \mathcal{M}_n &= \{0, 1\} \times V \times \mathcal{P}(\bigcup_{i=0}^{n-1} \mathcal{M}_i)\\
     \mathcal{M} &= \lim_{n \to \infty} \bigcup_{i=0}^{n} \mathcal{M}_i
 \end{split}
-\end{equation}
+\end{equation*}
+\end{defn}
 
-$\mathcal{M}_0$ is the ``base case'', the set of messages with ``null justifications''. $\mathcal{M}_n$ is the set of messages at ``height'' $n$, which have messages of height $n-1$ (and/or lower) in their justification. Note that messages $\mathcal{M}_0$ have height $0$. $\mathcal{P}$ denotes the ``power set'' function, which maps sets to the set of all of their subsets, so $\mathcal{P}(\bigcup_{i=0}^{n-1} \mathcal{M}_i)$ denotes all sets of protocol messages at height $n$ or lower.  
+$\mathcal{M}_0$ is the ``base case'', the set of messages with ``null justifications''. $\mathcal{M}_n$ is the set of messages at ``height'' $n$, which have messages of height $n-1$ (and/or lower) in their justification. Note that messages $\mathcal{M}_0$ have height $0$. $\mathcal{P}$ denotes the ``power set'' function, which maps sets to the set of all of their subsets, so $\mathcal{P}(\bigcup_{i=0}^{n-1} \mathcal{M}_i)$ denotes all sets of protocol messages at height $n$ or lower.
 	
-The estimator is a function with the following signature:
+The estimator is a function that maps sets of protocol messages to $0$ or $1$, or a null value denoted by $\emptyset$:
 	
-\begin{equation}
+\begin{equation*}
 \begin{split}
     \mathcal{E}:\mathcal{P}(\mathcal{M}) \to \{0, 1\} \cup \{\emptyset\}
 \end{split}
-\end{equation}
+\end{equation*}
 
-But before we can define the estimator, we need a few more basic definitions.
+With the property that $\mathcal{E}(\emptyset) = \emptyset$. A protocol message $m$ is then said to be ``valid'' if either $\mathcal{E}(J(m)) = \emptyset$ or $E(m) = \mathcal{E}(J(m))$. From now on, we will assume that $\mathcal{M}$ only contains valid messages.\footnote{For readability, the process for finding the valid messages in $\mathcal{M}$ as originally defined is not described in the body of the paper, and instead is described in this footnote. All protocol messages at height $0$ are valid because they have null justifications and $\mathcal{E}(\emptyset) = \emptyset$ (and therefore these messages are valid). Then we can find the valid protocol messages at height $1$ by applying the estimator to their justifications (which are sets of [valid] messages at height 0) for each message, and only keeping valid message. Similarly, we can find the valid protocol messages at height $n$ by applying the estimator to the justification of these messages (which are sets of valid messages at height $h < n$). We are thereby able to collect all valid protocol messages and restrict $\mathcal{M}.$}
 
-We will define $E$, a ``helper function'' that picks out the ``estimate'' given in a protocol message:
+
+But before we can define the estimator, we need a few more basic definitions. We will want to define $E$, a ``helper function'' that picks out the ``estimate'' given in a protocol message:
 
 $$
 E(m) = e \iff m = (e, \_, \_)
 $$
 
-Similarly, $S$ is a function that picks out the ``sender'', and finally $J$ is a function that picks out the ``justification''.  
+Similarly, we'll define $V$ as a function that picks out the ``sender'', and $J$ as a function that picks out the ``justification''.  
 
-We say that message $m_1$ is ``a dependency'' of message $m_2$, and we write $m_1 \prec m_2$ if:
+We say that message $m_1$ is ``a dependency'' of message $m_2$ and we write $m_1 \prec m_2$ if $m_1$ is in the justification of $m_2$, or if $m_1$ is in the justification of one of the messages in $m_1$'s justification, or if it is in the justification of a message in the justification of a message in the justification of $m_2$...
 
-\begin{equation}
+But we will also call $m_1$ a dependency of $m_2$ if $m_1 = m_2$:
+
+\begin{defn}[dependency, $\prec$]
+\begin{equation*}
 \begin{split}
 m_1 \prec m_2 \iff & m_1 = m_2 \text{ or } m_1 \in J(m_2) \text{ or } \exists m' \in J(m_2) \hspace{1mm} . \hspace{1mm} m' \prec m_2
 \end{split}
-\end{equation}
+\end{equation*}
+\end{defn}
 
-So we can define ``the dependencies'' of a message $m$ as the following
+So we will define define ``the dependencies'' of a message $m$ as all of the messages $m'$ such that $m' \prec m$. These are all the messages that can be accessed in the justifications, or in the justificatio of messages in justifications... etc.
 
-\begin{equation}
+\begin{equation*}
 \begin{split}
-D(m) = &\{m\}\cup \bigcup_{m' \in J(m)} D(m')  \text{ or } \exists m' \in J(m_2) \hspace{1mm} . \hspace{1mm} m' \prec m_2
+D(m) = &\{m\}\cup \bigcup_{m' \in J(m)} D(m') 
 \end{split}
-\end{equation}
+\end{equation*}
 
-Note that D(m) contains every message $m'$ such that $m' \prec m$. Further, it can be expanded in a natural way to define the dependencies of a set of messages (by taking the union of the dependencies of the individual messages).
+This definition can be extended in a natural way to define the dependencies of a set of messages (by taking the union of the dependencies of the individual messages).
 
-We will also say that $m_2$ is ``later'' than $m_1$ and write $m_2 \succ m_1$, if we have $m_1 \prec m_2$.
+If $m_1 \prec m_2$ then we will also say that $m_2$ is ``later'' than $m_1$ and write $m_2 \succ m_1$.
 
 We now have the language to talk about the latest messages from a sender $v$ out of a set of messages $M$, which we denote as $L(v, M)$:
 
-\begin{equation}
+\begin{defn}[Latest message]
+\begin{equation*}
 \begin{split}
-m \in L(v, M) \iff & \nexists m' \in D(M) \text{ such that } S(m') = v \text{ and } m' \succ m
+m \in L(v, M) \iff & \nexists m' \in D(M) \text{ such that } V(m') = v \text{ and } m' \succ m
 \end{split}
-\end{equation}
+\end{equation*}
+\end{defn}
 
-Latest messages will end up being critical to defining the estimator, which returns $0$ if ``more'' of the nodes have latest messages with estimate $0$ than with estimate $1$. We will use ``weights'' for nodes to measure which estimate has ``more'' consensus forming nodes, implemented by a map from validator names to positive real numbers.
+Latest messages will end up being critical to defining the estimator, which returns $0$ if ``more'' of the nodes have latest messages with estimate $0$ than with estimate $1$. We will use ``weights'' for nodes to measure which estimate has ``more'' consensus forming nodes, implemented by a map from validator names to positive real numbers. We do this without loss of generality (because it's possible that all weights are equal).
 
 $$
 W:V \to \mathbb{R}_+
 $$
 
-From this we can define the ``score'' of an estimate $e$ in a set of messages $M$ as the total weight of validators with latest messages with estimate $e$.
+
+Now we can define the ``score'' of an estimate $e$ in a set of messages $M$ as the total weight of validators with latest messages with estimate $e$.
+
+\begin{defn}[Score of an estimate]
+\begin{align}
+\text{Score}(e, M) = \sum_{\substack{v \in V \\ \text{such that } m \in L(v,M) \\ \text{with } E(m) = e}} W(v)
+\end{align}
+\end{defn}
+
+Finally, we can define the estimator for the Binary consensus, it returns the estimate with the highest score, if there is one, otherwise it returns $\emptyset$.
+
+\begin{defn}[Binary Estimator]
+\begin{align}
+	\mathcal{E}(M) &= 0 &\text{ if } \text{Score}(0, M) > \text{Score}(1, M), \\
+	\mathcal{E}(M) &= 1 &\text{ if } \text{Score}(1, M) > \text{Score}(0, M), \\
+	\mathcal{E}(M) &= \emptyset &\text{ if } \text{Score}(1, M) = \text{Score}(0, M)
+\end{align}
+\end{defn}
+
+So, at this stage we have protocol messages and an estimator. Now if we can come up with a way to count Byzantine faults from a set of protocol messages, then we will be ready to give the set of protocol states with their state transitions for a binary consensus protocol that tolerates $t$ Byzantine faults.
+
+Each protocol message $m$ is supposed to represent a record of messages that were seen by validator $V(m)$. Any ``correct'' node will have a growing record of messages that they have received and sent. Specifically, correct nodes never be the sender of a pair of messages $m_1$ and $m_2$ such that neither $m_1 \prec m_2$ nor $m_1 \succ m_2$. We will call such a pair of messages ``an equivocation''.
+
+
+\begin{defn}[Equivocation]
+\begin{align}
+Eq(m_1, m_2) \iff V(m_1) = V(m_2) \text{ and } m_1 \nsucc m_2 \text{ and } m_1 \nprec m_2
+\end{align}
+\end{defn}
+
+A sender $v$ is said to be ``Byzantine'' in a set of protocol messages $M$:
+
+$$
+B(v,M) \iff \exists m_1, m_2 \in M \text{ such that } \\ v = V(m_1) \land Eq(m_1, m_2)
+$$
+
+The weight of Byzantine faults evidenced in a set of messages $M$ is the sum of the weights of validators who are Byzantine in $M$.
 
 \begin{align}
-S(e, M) = \sum_{\substack{v \in V \\ \text{such that } m \in L(v,M) \\ \text{with } E(m) = e}} W(v)
+F(M) = \sum_{\substack{v \in V \\ B(v, M)}} W(v)
 \end{align}
 
-Finally, we define the estimator for the Binary consensus:
-	
-\begin{align}
-	\mathcal{E}(M) &= 0 &\text{ if } S(0, M) > S(1, M), \\
-	\mathcal{E}(M) &= 1 &\text{ if } S(1, M) > S(0, M), \\
-	\mathcal{E}(M) &= \emptyset &\text{ if } S(1, M) = S(0, M)
-\end{align}
+Then we can define a binary consensus protocol that tolerates $t$ Byzantine faults by using protocol states $\Sigma \subset \mathcal{P}(\mathcal{M}$) with the property that for any $\sigma \in \Sigma$, $F(\sigma) \leq t$ with protocol state transitions from any $\sigma$ to $\sigma'$ if $\sigma \subset \sigma'$. 
 
-So, at this stage we have protocol messages and an estimator. If we additionally had a way to count Byzantine faults from a set of protocol messages and a way to detect estimate safety, then we would have a consensus protocol.
+Because this construction satisifes the terms of our consensus safety proof, we know that decisions on safe estimates in this protocol are consensus safe (if there are less than $t$ Byzantine faults (by weight)). 
 
-Byzantine fault detection, in short [not sure where this really belongs in]:
+We have yet to talk about how nodes running the binary consensus protocol can detect when they are in a state with a safe estimate. We will get to this, however, will we specify the blockchain consensus protocol first, because we will detect estimate safety in the same way there.
 
-A protocol message $m$ is said to be ``valid'' if either $\mathcal{E}(J(m)) = \emptyset$ or $E(m) = \mathcal{E}(J(m))$.
-A pair of protocol messages $m_1$ and $m_2$ is an ``equivocation'' if $S(m_1) = S(m_2)$ and $m_1 \nsucc m_2$ and $m_1 \nprec m_2$.
-The weight of Byzantine faults evidences in a set of messages $M$ is
-
-\begin{align}
-F(M) = \sum_{\substack{v \in V \\ \exists m \in M \text{such that } S(m) = v \text{ and } invalid(m), \\ \text{or } \exists m_1, m_2 \in M \text{with $v = S(m_1)$ such that } Equivocation(m_1, m_2)}} W(v)
-\end{align}
-
-The binary consensus protocol, for some amount of fault tolerance $t$, will therefore have protocol states $\Sigma \subset \mathcal{M}$ such that $M \in \Sigma \implies F(M) <= t$, and protocol state transitions from any $\sigma_1 \in \Sigma$ to $\sigma_2 \in \Sigma$ if $\sigma_1 \subset \sigma_2$. We have seen from our consensus safety proof that decisions on safe estimates in this protocol are consensus safe if there are less than $t$ Byzantine faults (by weight). It remains to be seen that there are protocol states with estimate safety, and to be shown that estimate safety can sometimes be reasonably efficiently detected.
-
-Now that we have covered the binary consensus protocol, it will be a lot easier to understand the blockchain consensus protocol.
+But now that we've covered the binary consensus protocol, it will be a lot easier for us to specify the blockchain consensus protocol.
 
 \section{Casper the Friendly Ghost}
 
