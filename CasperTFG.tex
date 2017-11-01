@@ -111,6 +111,7 @@ So our next step is to present a process that counts ``the number of Byzantine f
 And indeed, both of the protocols specified here have the property that the union of any pair of protocol states $\sigma_1$ and $\sigma_2$, $\sigma_1 \cup \sigma_2$, is a protocol state if and only if it does not have more than $t$ Byzantine faults. Thus, two nodes who decide on safe estimates have consensus safety if there is less than $t$ Byzantine faults, and all this required saying almost nothing about the estimator! :)
 
 
+
 \section{Casper the Friendly Binary Consensus}
 
 We will specify the Binary consensus protocol by first defining protocol messages, then by defining the estimator (which maps sets of protocol messages to $0$ or $1$). Next we will give a way to count Byzantine faults, and finally define the ``protocol states'' and ``protocol state transitions'' that are allowed in Casper the Friendly Binary Cosnensus.
@@ -159,12 +160,12 @@ But we will also call $m_1$ a dependency of $m_2$ if $m_1 = m_2$:
 \begin{defn}[dependency, $\prec$]
 \begin{equation*}
 \begin{split}
-m_1 \prec m_2 \iff & m_1 = m_2 \text{ or } m_1 \in J(m_2) \text{ or } \exists m' \in J(m_2) \hspace{1mm} . \hspace{1mm} m' \prec m_2
+m_1 \prec m_2 \iff & m_1 = m_2 \text{ or } \exists m' \in J(m_2) \hspace{1mm} . \hspace{1mm} m' \prec m_2
 \end{split}
 \end{equation*}
 \end{defn}
 
-So we will define define ``the dependencies'' of a message $m$ as all of the messages $m'$ such that $m' \prec m$. These are all the messages that can be accessed in the justifications, or in the justificatio of messages in justifications... etc.
+So we will define define ``the dependencies'' of a message $m$ as all of the messages $m'$ such that $m' \prec m$. These are all the messages that can be accessed in the justifications, or in the justification of messages in justifications... etc.
 
 \begin{equation*}
 \begin{split}
@@ -195,7 +196,7 @@ $$
 
 Now we can define the ``score'' of an estimate $e$ in a set of messages $M$ as the total weight of validators with latest messages with estimate $e$.
 
-\begin{defn}[Score of an estimate]
+\begin{defn}[Score of a binary estimate]
 \begin{align}
 \text{Score}(e, M) = \sum_{\substack{v \in V \\ \text{such that } m \in L(v,M) \\ \text{with } E(m) = e}} W(v)
 \end{align}
@@ -203,7 +204,7 @@ Now we can define the ``score'' of an estimate $e$ in a set of messages $M$ as t
 
 Finally, we can define the estimator for the Binary consensus, it returns the estimate with the highest score, if there is one, otherwise it returns $\emptyset$.
 
-\begin{defn}[Binary Estimator]
+\begin{defn}[Binary estimator]
 \begin{align}
   \mathcal{E}(M) &= 0 &\text{ if } \text{Score}(0, M) > \text{Score}(1, M), \\
   \mathcal{E}(M) &= 1 &\text{ if } \text{Score}(1, M) > \text{Score}(0, M), \\
@@ -234,11 +235,19 @@ The weight of Byzantine faults evidenced in a set of messages $M$ is the sum of 
 F(M) = \sum_{\substack{v \in V \\ B(v, M)}} W(v)
 \end{align}
 
-Then we can define a binary consensus protocol that tolerates $t$ Byzantine faults by using protocol states $\Sigma \subset \mathcal{P}(\mathcal{M}$) with the property that for any $\sigma \in \Sigma$, $F(\sigma) \leq t$ with protocol state transitions from any $\sigma$ to $\sigma'$ if $\sigma \subset \sigma'$. 
+Then we can define a binary consensus protocol that tolerates $t$ Byzantine faults by using protocol states $\Sigma \subset \mathcal{P}(\mathcal{M}$) with the property that for any $\sigma \in \Sigma$, $F(\sigma) \leq t$ with protocol state transitions from any $\sigma$ to $\sigma'$ if $\sigma \subseteq \sigma'$. 
 
-Because this construction satisifes the terms of our consensus safety proof, we know that decisions on safe estimates in this protocol are consensus safe (if there are less than $t$ Byzantine faults (by weight)). 
+We can now give the definition of estimate safety for the Binary Consensus, for an estimate $e$ in a protocol state $\sigma$.
 
-We have yet to talk about how nodes running the binary consensus protocol can detect when they are in a state with a safe estimate. We will get to this, however, will we specify the blockchain consensus protocol first, because we will detect estimate safety in the same way there.
+\begin{defn}[Binary Estimate Safety]
+$$
+S(e, \sigma) \iff \forall \sigma' \in \Sigma: \sigma \to \sigma' \implies e = \mathcal{E}(\sigma')
+$$
+\end{defn}
+
+Because this construction satisifes the terms of our consensus safety proof, we know that decisions on such safe estimates in this protocol are consensus safe (if there are less than $t$ Byzantine faults (by weight)).
+
+We have yet to talk about how nodes running the binary consensus protocol can detect when they are in a state with a safe estimate. We will get to this, however, we will first specify the blockchain consensus protocol because we will detect estimate safety in the same way, there.
 
 But now that we've covered the binary consensus protocol, it will be a lot easier for us to specify the blockchain consensus protocol.
 
