@@ -529,7 +529,7 @@ In all of these representations, each message is represented by a node in the gr
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\includegraphics[width=0.5\textwidth]{3binary.png}
 \caption{A Binary consensus protocol execution. Dotted lines are messages included in the justification of the later message. The label on the nodes represents the estimate of the message. A message is coloured if it has achieved some amount of Byzantine fault tolerant estimate safety, accoring to a clique oracle given its justification. The darker the colour, the more faults are tolerated by the estimate}
 \end{figure}
 
@@ -543,14 +543,14 @@ In all of these representations, each message is represented by a node in the gr
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\includegraphics[width=0.5\textwidth]{blockchainsafety.png}
 \caption{In this execution of the blockchain consensus protocol, we observe some safe blocks. They are colour coded the same way as in the earlier, however this time they represent the blocks that are seen to be safe from the view that includes all of the nodes. In contrast, in the binary consensus we displayed safety that was detected locally.}
 \end{figure}
 
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\includegraphics[width=0.5\textwidth]{roundrobin.png}
 \caption{Finally, in this execution of the blockchain consensus protocol, where the validators are able to pass blocks around in a ``round-robin'' configuration, we observe the $\mathcal{O}(1)$ messages received per (finalized) block. This is possible because each block contributes to the consensus safety of many blocks.}
 \end{figure}
 
