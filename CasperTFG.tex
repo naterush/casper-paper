@@ -238,7 +238,23 @@ The weight of Byzantine faults evidenced in a set of messages $M$ is the sum of 
 F(M) = \sum_{\substack{v \in V \\ B(v, M)}} W(v)
 \end{align}
 
-Then we can define a binary consensus protocol that tolerates $t$ Byzantine faults by using protocol states $\Sigma \subset \mathcal{P}(\mathcal{M}$) with the property that for any $\sigma \in \Sigma$, $F(\sigma) \leq t$ with protocol state transitions from any $\sigma$ to $\sigma'$ if $\sigma \subseteq \sigma'$. 
+We can now define our protocol states $\Sigma \subset \mathcal{P}(\mathcal{M})$ as the sets of protocol messages that exhibit less than $t$ faults, by weight:
+
+\begin{defn}[Protocol States]
+\begin{align}
+\Sigma = \left\{\sigma \subseteq \mathcal{M}: F(\sigma) \leq t \right\}
+\end{align}
+\end{defn}
+
+And we can also define protocol state transitions between states in $\Sigma$ so that an execution from $\sigma \in \Sigma$ to state $\sigma' \in \Sigma$ exists if and only if $\sigma \subseteq \sigma'$. We write the existence of such a state transition as $\sigma \to \sigma'$. 
+
+\begin{defn}[Protocol Executions]
+\begin{align}
+\forall \sigma, \sigma' \in \Sigma \hspace{5mm} : \sigma \to \sigma' \iff \sigma \subseteq \sigma'
+\end{align}
+\end{defn}
+
+Protocol executions compose ($\sigma \to \sigma' \land \sigma' \to \sigma'' \implies \sigma \to \sigma''$) because the improper subset relation ($\subseteq$) composes.
 
 We can now give the definition of estimate safety for the Binary Consensus, for an estimate $e$ in a protocol state $\sigma$.
 
@@ -329,9 +345,7 @@ We now have the language required to define the estimator for the blockchain con
 
 We are going to assume that ``hash'' has the property that out of any set of blocks, only one has the lowest hash. Using the hashes of blocks to eliminate ``ties'' means that the estimator for the blockchain consensus doesn't need to ever output an exception. Previously $\emptyset$ would be returned by the binary estimator, when $0$ and $1$ had the same score). This means that a message $m$ is valid if $E(m) = \mathcal{E}(J(m))$, and just as in the binary consensus we will insist that all the blocks are valid. \footnote{Following the process decribed in the footnote about excluding invalid messages from the binary consensus.}
 
-Byzantine fault detection is defined here in \emph{precisely} the same way as in the binary consensus. We therefore don't give the definitions again. 
-
-So we can alread define Casper the Friendly Ghost's protocol states $\Sigma \subset \mathcal{P}(\mathcal{M})$, which are sets of blocks that exhibit less than $t$ Byzantine faults, $F(M) < t$, for any $M \in \Sigma$.
+Equivocation, Byzantine fault detection, protocol states, and prtocol state transitions are defined here in \emph{precisely} the same way as in the binary consensus. We therefore don't give the definitions again. 
 
 We can now give the definition of estimate safety for Casper the Friendly Ghost, for a block $b$ in a protocol state $\sigma$.
 
