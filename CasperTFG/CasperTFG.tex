@@ -48,6 +48,7 @@
 
 \setlength{\parskip}{1em}
 \setlength{\parindent}{2em}
+\raggedbottom
 
 \graphicspath{{figures/}}
 
@@ -289,13 +290,13 @@ Now that we've covered the binary consensus protocol, it is much simpler to spec
 
 \section{Casper the Friendly Ghost}
 
-The specification of Casper the Friendly Ghost is going to proceed along \emph{very} similar lines as Casper the Friendly Binary Consensus. In fact, we will be able to reuse most of our definitions without any modification.
+The specification of Casper the Friendly Ghost proceeds along \emph{very} similar lines as Casper the Friendly Binary Consensus. In fact, we are able to reuse most of our definitions without any modification.
 
-We will again first define the set of all protocol messages and then the estimator, which this time is going to be the Greedy Heaviest-observed Sub-tree (GHOST) ``fork choice rule''. Then, we will define protocol states as sets of messages which exhibit up to $t$ Byzantine faults (by weight), and then we define the protocol's ``state transitions''. Finally, we will be able to define block estimate safety. These definitions will satisfy those in the consensus safety proof for decisions on safe estimates.
+We again first define the set of all protocol messages and then the estimator, which this time is the Greedy Heaviest-observed Sub-tree (GHOST) ``fork choice rule''. Then, we define protocol states as sets of messages which exhibit up to $t$ Byzantine faults (by weight), and then we define the protocol's ``state transitions''. Finally, we define block estimate safety. These definitions satisfy those in the consensus safety proof for decisions on safe estimates.
 
-Protocol messages are called ``blocks'' and have the same three components as the messages in the binary consensus protocol; an estimate, a sender and a justification. The estimate is a block, called ``the prevblock'' or ``the parent block''. For valid messages, the estimate will be the block on the head of the blockchain chosen by fork choice rule in the justification. The ``sender'' (a validator name) field is defined precisely as before. Finally, the justification is again simply a set of protocol messages.
+Protocol messages are called ``blocks'' and have the same three components as the messages in the binary consensus protocol; an estimate, a sender and a justification. The estimate is a block, called ``the prevblock'' or ``the parent block''. For valid messages, the estimate is the block on the head of the blockchain chosen by the GHOST fork choice rule in the justification. The ``sender'' (a validator name) field is defined precisely as before. Finally, the justification is again simply a set of protocol messages.
 
-So, to be more formal, in Casper the Friendly Ghost we have protocol messages, $\mathcal{M}$, with the following form (again parametric in a set of validator names, $\mathcal{V}$): 
+Formally, in Casper the Friendly Ghost we have protocol messages, $\mathcal{M}$, with the following form (again parametric in a set of validator names, $\mathcal{V}$): 
 
 
 \begin{defn}[Blocks]
@@ -309,9 +310,9 @@ So, to be more formal, in Casper the Friendly Ghost we have protocol messages, $
 \end{equation*}
 \end{defn}
 
-The definitions of the ``helper functions'' ($E$, $V$, and $J$), ``dependency'', ``later'', ``latest messages'', and ``validator weights'' given in the previous section binary consensus are defined \emph{precisely} in the same way here. We will therefore use them without giving the definitions again.
+The definitions of the ``helper functions'' ($E$, $V$, and $J$), ``dependency'', ``later'', ``latest messages'', and ``validator weights'' given in the previous section binary consensus are defined \emph{precisely} in the same way here. We therefore use them without giving the definitions again.
 
-We do need a couple of new terms, though, to define the fork choice rule. We will write $b_1 \downarrow b_2$ and say that block $b_1$ is ``in the blockchain'' of block $b_2$, if 
+We do need a couple of new terms, though, to define the fork choice rule. We write $b_1 \downarrow b_2$ and say that block $b_1$ is ``in the blockchain'' of block $b_2$, if
 
 \begin{defn}[Blockchain membership, $b_1 \downarrow b_2$]
 \begin{align}
@@ -319,11 +320,11 @@ We do need a couple of new terms, though, to define the fork choice rule. We wil
 \end{align}
 \end{defn}
 
-So now we define the ``score'' of a block $b$ given a set of protocol messages $M$ as the total weight of validators with latest blocks $b'$ such that $b \downarrow b'$.
+We define the ``score'' of a block $b$ given a set of protocol messages $M$ as the total weight of validators with latest blocks $b'$ such that $b \downarrow b'$.
 
 \begin{defn}[Score of a block]
 \begin{align}
-\text{Score}(b, M) = \sum_{\substack{v \in V \\ m \in L(v,M) \\ b|E(m)}} W(v)
+\text{Score}(b, M) = \sum_{\substack{v \in V \\ m \in L(v,M) \\ b \downarrow E(m)}} W(v)
 \end{align}
 \end{defn}
 
@@ -338,7 +339,7 @@ We now have the language required to define the estimator for the blockchain con
 \end{defn}
 
 \begin{algorithm}[H]
- \KwData{A set of blocks $M$}
+ \KwData{A set of blocks, $M$}
  \KwResult{The block at the head of the fork choice}
  $b$ = Genesis Block
 
@@ -359,35 +360,35 @@ We now have the language required to define the estimator for the blockchain con
 \caption{The Greedy Heaviest-Observed Sub-tree Fork-choice rule, $\mathcal{E}$}
 \end{algorithm}
 
-We are going to assume that ``hash'' has the property that out of any set of blocks, only one has the lowest hash. Using the hashes of blocks to eliminate ``ties'' means that the estimator for the blockchain consensus doesn't need to ever output an exception. Previously $\emptyset$ would be returned by the binary estimator, when $0$ and $1$ had the same score). This means that a message $m$ is valid if $E(m) = \mathcal{E}(J(m))$, and just as in the binary consensus we will insist that all the blocks are valid. \footnote{Following the process decribed in the footnote about excluding invalid messages from the binary consensus.}
+We assume that ``hash'' has the property that out of any set of blocks, only one has the lowest hash. Using the hashes of blocks to eliminate ``ties'' means that the estimator for the blockchain consensus never outputs an exception. Previously the binary estimator return $\emptyset$ when $0$ and $1$ had the same score. This means that a message $m$ is valid if $E(m) = \mathcal{E}(J(m))$, and just as in the binary consensus we insist that all the blocks are valid. \footnote{Following the process decribed in the footnote about excluding invalid messages from the binary consensus.}
 
-``Equivocation'', ``Byzantine faulty'', ``fault weight'', ``protocol states'', and ``protocol executions'' are defined here in \emph{precisely} the same way as in the binary consensus. We therefore don't give the definitions again. 
+``Equivocation'', ``Byzantine faulty'', ``fault weight'', ``protocol states'', and ``protocol executions'' are defined here in \emph{precisely} the same way as in the binary consensus. We therefore do not give the definitions again. 
 
 We can now give the definition of estimate safety for Casper the Friendly Ghost, for a block $b$ in a protocol state $\sigma$.
 
 \begin{defn}[Blockchain Estimate Safety]
 $$
-S_t(b, \sigma) \iff \forall \sigma' \in \Sigma_t: \sigma \to \sigma' \implies b \downarrow \mathcal{E}(\sigma')
+S_t(b, \sigma) \iff \forall \sigma' \in \Sigma_t: \sigma \to \sigma',\hspace{1.5mm} b \downarrow \mathcal{E}(\sigma')
 $$
 \end{defn}
 
 Because this construction satisfies the terms of our consensus safety proof, we know that decisions on safe estimates in this protocol are consensus safe (if there are less than $t$ Byzantine faults (by weight)). 
 
-So we are now ready to give a mechanism that nodes can use to detect which of their estimates are safe, in the binary consensus and in the blockchain consensus.
+We now present a mechanism that nodes can use to detect which of their estimates are safe in both the binary and the blockchain consensus.
 
 \section{A Simple Safety Oracle}
 
-Estimate safety is parametric in some protocol state $\sigma$, and is a property all of its future protocol states. The challenge with estimate safety is that there are (at least in our cases) an infinite number of possible future protocol states. Still nodes somehow need to make a determination about whether or not an estimate is safe in a finite (ideally very short) amount of time.
+Estimate safety is parametric in some protocol state $\sigma$ and is a property of all its future protocol states. The challenge with estimate safety is that there are (at least in our cases) an infinite number of possible future protocol states, yet nodes somehow need to make a determination about whether or not an estimate is safe in a finite (ideally very short) amount of time.
 
-Estimate safety is also parametric in a value of the estimate which is somehow invariant in the estimator $\mathcal{E}$ over these future states. We will refer to the estimate whose safety is being determined as ``the candidate estimate''.
+Estimate safety is also parametric in a value of the estimate which is somehow invariant in the estimator $\mathcal{E}$ over these future states. We refer to the estimate whose safety is being determined as ``the candidate estimate.''
 
-An ``ideal adversary'' return an ``attack'', a future protocol state $\sigma'$ such that $\sigma \to \sigma'$, with an estimator $\mathcal{E}(\sigma')$ that ``disagrees'' with the candidate estimate if and only if such a protocol state exists in $\Sigma_t$. We might imagine that such an adversary would be strategic about which possible future states they search. An ``ideal safety oracle'' would indicate safety whenever the ideal adversary fails to find an attack.
+An ``ideal adversary'' returns an ``attack'', a future protocol state $\sigma'$ such that $\sigma \to \sigma'$, with an estimator $\mathcal{E}(\sigma')$ that ``disagrees'' with the candidate estimate if and only if such a protocol state exists in $\Sigma_t$. We might imagine that such an adversary would be strategic about which possible future states they search. An ``ideal safety oracle'' would indicate safety whenever the ideal adversary fails to find an attack.
 
-If we can detect \emph{only some} of the circumstances in which the ideal adversary will fail to find an attack, then we can construct a safety oracle which is able to detect safety in some of the states with estimate safety. The cases may be available enough for it for it to be useful in an implementation even though it may not be an ideal safety oracle.
+If we can detect \emph{only some} of the circumstances in which the ideal adversary fails to find an attack, then we can construct a safety oracle which is able to detect safety in some of the states with estimate safety. The cases may be available enough for it to be useful in an implementation even though it may not be an ideal safety oracle.
 
-We will identify such a set of circumstances. So that we don't have to talk in a case-by-case basis about this safety oracle, we will denote ``agreement'' between estimate $e$ and estimate $e'$ as $e \equiv e'$. This correspond to $e = e'$ in the binary consensus, and $e \downarrow e'$ in the blockchain consensus. Disagreement will be denoted with $\not\equiv$.
+We identify such a set of circumstances. To discuss more generally, we denote ``agreement'' between estimate $e$ and estimate $e'$ as $e \equiv e'$. This correspond to $e = e'$ in the binary consensus, and $e \downarrow e'$ in the blockchain consensus. Disagreement will be denoted with $\not\equiv$.
 
-We will say that validator $v_i$ ``sees validator $v_j$ agreeing with estimate $e$ in a set of protocol messages $M$'' if:
+We say that validator $v_i$ ``sees validator $v_j$ agreeing with estimate $e$ in a set of protocol messages $M$'' if:
 \begin{itemize}
 \item $v_i$ has exactly one latest message in $M$ (we are denoting this message as $L(v_i, M)$)
 \item $v_j$ has exactly one latest message in the justification of $v_i$'s latest message, $J(L(v_i, M))$ (which we denote as $L(v_j, J(L(v_i, M))))$
@@ -400,7 +401,7 @@ v_i \xrightarrow[\text{$M$}]{\text{$\equiv, e$}} v_j \iff E(L(v_j, J(L(v_i, M)))
 $$
 \end{defn}
 
-And we will say that a validator $v_i$ ``can see $v_j$ disagreeing with estimate $e$ in a set of protocol messages $M$'' if:
+And we say that a validator $v_i$ ``can see $v_j$ disagreeing with estimate $e$ in a set of protocol messages $M$'' if:
 \begin{itemize}
 \item $v_i$ has exactly one latest message in $M$, $L(v_i, M)$
 \item $v_j$ has exactly one latest message in the justification of $v_i$'s latest message, $J(L(v_i, M))$ (which we denote as $L(v_j, J(L(v_i, M))))$
@@ -410,28 +411,28 @@ And we will say that a validator $v_i$ ``can see $v_j$ disagreeing with estimate
 
 \begin{defn}[$v_i$ can see $v_j$ disagreeing with $e$ in $M$]
 $$
-v_i \xRightarrow[\text{$M$}]{\text{$\not\equiv, e$}} v_j \iff \exists m \in M : V(m) = v_j m \succ L(v_j, J(L(v_i, M)))) \land E(m) \not\equiv e
+v_i \xRightarrow[\text{$M$}]{\text{$\not\equiv, e$}} v_j \iff \exists m \in M : V(m) = v_j \land m \succ L(v_j, J(L(v_i, M)))) \land E(m) \not\equiv e
 $$
 \end{defn}
 
 A set of non-Byzantine nodes in $M$ \emph{who each mutually see each other agreeing with $e$ in $M$ and also mutually can't see each other disagreeing with $e$ in $M$} are called an ``$e$-clique'' in $M$.
 
-So our aim is going to be to show that if there is an $e$-clique in $M$ with total weight $W'$, and $2*W' > \sum_{v\in V} W(v)$, then $e$ is safe for the protocol with states $\Sigma_t$ for $t = 0$. We won't give a rigorous proof, but the idea is simple enough. If nodes in an $e$-clique see each other agreeing on $e$ and can't see each other disagreeing on $e$, then there isn't any message from inside the clique that will cause them to assign lower scores to $e$. Further, if the clique has more than half of the weight, then no external messages could raise the scores these validators assign to a competing estimate to be higher than the score they assign to $e$. Messages from senders who are inside or outside the clique therefore won't be able to change the estimates of senders inside the clique, and the ideal adversary will necessarily fail.
+Our aim is to show that if there is an $e$-clique in $M$ with total weight $W'$, and $2*W' > \sum_{v\in V} W(v)$, then $e$ is safe for the protocol with states $\Sigma_t$ for $t = 0$. We won't give a rigorous proof, but the idea is simple enough. If nodes in an $e$-clique see each other agreeing on $e$ and can't see each other disagreeing on $e$, then there does not exist any new message from inside the clique that will cause them to assign lower scores to $e$. Further, if the clique has more than half of the validators by weight, then no messages external to the clique can raise the scores these validators assign to a competing estimate to be higher than the score they assign to $e$. Messages from senders who are inside or outside the clique therefore cannot change the estimates of senders inside the clique, and the ideal adversary will necessarily fail.
 
-We can also show that if $e$-clique in $M$ with total weight $W'$, and $2*W' > \sum_{v\in V} W(v)$, then $e$ is safe as long as $2*W' - \sum_{v\in V} W(v) \leq t - F(M)$, but we will leave this for a future draft of this work.
+We can also show that if $e$-clique in $M$ with total weight $W'$, and $2*W' > \sum_{v\in V} W(v)$, then $e$ is safe as long as $2*W' - \sum_{v\in V} W(v) \leq t - F(M)$, but we leave this for a future draft of this work.
 
 We present the pseudocode for the ``clique oracle'' that uses this result to detect estimate safety:
 
 \begin{algorithm}[H]
  \KwData{An estimate $e$, a set of messages $M \in \Sigma_t$} 
  \KwResult{True or False, an indicator when $e$ is safe in $M \in \Sigma_t$}
- 
 
 
-  $N$ = a fully network with undirected edges and validator names $V$ as nodes
 
-  \For{each non-Byzantine validator, $v_i \in B(M)$}{
-    \For{each non-Byzantine validator, $v_j \in B(M)$}{
+  $N$ = a fully connected network with undirected edges and validator names $V$ as nodes
+
+  \For{each non-Byzantine validator, $v_i \in V$}{
+    \For{each non-Byzantine validator, $v_j \in V$}{
       \If{$v_i$ doesn't see $v_j$ agreeing with $e$ in $M$ (not $v_i \xrightarrow[\text{$M$}]{\text{$\equiv, e$}} v_j$)}{
         $N$.remove\_edge($(v_i, v_j)$)
       }
@@ -450,12 +451,13 @@ We present the pseudocode for the ``clique oracle'' that uses this result to det
   \If{2*clique\_weight $\leq$ total\_weight}{
     \Return{False}
   }
-  
+
   \If{2*clique\_weight $>$ total\_weight}{ 
     initial\_fault\_weight = $F(M)$ (this will be $\leq t$ because $M \in \Sigma_t$)
+
     fault\_tolerance = 2*clique\_weight - total\_weight
-  
-    \eIf{fault\_tolerance + initial\_fault\_weight > $t$}
+
+    \eIf{fault\_tolerance + initial\_fault\_weight $>$ $t$}
     {
       \Return{True}
     }{
@@ -463,21 +465,21 @@ We present the pseudocode for the ``clique oracle'' that uses this result to det
     }
   }
 
-\caption{The ``Clique Oracle'', $\mathcal{E}$}
+\caption{The ``Clique Oracle'', $S_t$}
 \end{algorithm}
 
-Now that we have an implementable safety oracle, we are able to equip nodes in both Casper the Friendly Binary Consensus and in Casper the Friendly Ghost with the ability to detect estimate safety. This will allow them to \emph{actually} rather than \emph{only hypothetically} make (consensus safe) decisions on safe estimates.
+Now that we have an implementable safety oracle, we can equip nodes in both Casper the Friendly Binary Consensus and in Casper the Friendly Ghost with the ability to detect estimate safety. This allows nodes to \emph{actually} rather than \emph{only hypothetically} make (consensus safe) decisions on safe estimates.
 
 
 \section{Subjective Fault Tolerance Thresholds}
 
-It turns out that the consensus safety proof can be adapted to talk about the consensus safety of decisions on safe estimates by nodes who are running any of these ``correct-by-construction'' consensus protocols \emph{at different levels of fault tolerance}.
+The consensus safety proof can be adapted to discuss the consensus safety of decisions on safe estimates by nodes who are running any of these ``correct-by-construction'' consensus protocols \emph{at different levels of fault tolerance}.
 
-We can have one node executing the protocol in $\Sigma_{t_1}$ while another node running in $\Sigma_{t_2}$. Their decisions (which happen only on safe estimates, of course) will have consensus safety as long as the union of their states exhibits less than the smallest of $t_1$ and $t_2$ faults (by weight).
+One node can execute the protocol in $\Sigma_{t_1}$ while another node can execute in $\Sigma_{t_2}$. Their decisions (which happen only on safe estimates, of course) have consensus safety as long as the union of their states exhibits less than the smallest of $t_1$ and $t_2$ faults (by weight).
 
-This is because the protocol states in these different protocols are identical, except for the fact that one of them also includes protocol states that exhibit even more Byzantine faults than the other. If for example $t_1 < t_2$, then $\Sigma_{t_1} \subset \Sigma_{t_2}$. This means a node at $\sigma_2 \in \Sigma_{t_2}$ will share a common future with a node at $\sigma_1 \in \Sigma_{t_1}$ as long as it isn't in a state $\sigma_2$ such that $F(\sigma_1 \cup \sigma_2) > t_1$.
+This is because the protocol states in these different protocols are identical, except for the fact that one of them also includes protocol states that exhibit even more Byzantine faults than the other. If for example $t_1 < t_2$, then $\Sigma_{t_1} \subset \Sigma_{t_2}$. This means a node at $\sigma_2 \in \Sigma_{t_2}$ shares a common future with a node at $\sigma_1 \in \Sigma_{t_1}$ as long as it is not in a state $\sigma_2$ such that $F(\sigma_1 \cup \sigma_2) > t_1$.
 
-Removing fault tolerance thresholds from the protocol and making them settings that each node who uses the consensus protocol can set independently has a number of attractive properties. It means that an attacker may not know the fault tolerance threshold of their targets. There are also economic benefits, but they are out of scope for this paper.\footnote{Briefly, removing in-protocol fault tolerance thresholds allows every node to marginally contribute to consensus (since more fault tolerance may allow more nodes to find safety) and therefore have a positive contribution to any cartel (and therefore it shouldn't be in the cartel's interest to censor them). It also removes focal points for cartelization.} 
+Removing fault tolerance thresholds from the protocol and making them, instead, a setting that each node can configure independently has a number of attractive properties. For one, an attacker may not know the fault tolerance threshold of its targets. There are also economic benefits, but these are out of scope of this paper.\footnote{Briefly, removing in-protocol fault tolerance thresholds allows every node to marginally contribute to consensus (since more fault tolerance may allow more nodes to find safety) and therefore have a positive contribution to any cartel (and thus it would not be in the cartel's interest to censor them). It also removes focal points for cartelization.}
 
 \section{Casper the Friendly Ghost with Validator Rotation}
 
