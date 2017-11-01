@@ -226,17 +226,27 @@ Eq(m_1, m_2) \iff V(m_1) = V(m_2) \text{ and } m_1 \nsucc m_2 \text{ and } m_1 \
 \end{align}
 \end{defn}
 
-A sender $v$ is said to be ``Byzantine'' in a set of protocol messages $M$:
+A sender $v$ with an equivocation in a set of protocol messages $M$, is said to be ``Byzantine'', or to have exhibited a ``Byzantine fault'' in $M$.
+
+\begin{defn}[Byzantine faulty node]
+\begin{align}
+B(v,M) \iff \exists m_1, m_2 \in D(M) \text{ such that } v = V(m_1) \land Eq(m_1, m_2)
+\end{align}
+\end{defn}
+
+We can then define the Byzantine nodes visible in $M$ as 
 
 $$
-B(v,M) \iff \exists m_1, m_2 \in D(M) \text{ such that } \\ v = V(m_1) \land Eq(m_1, m_2)
+B(M) = \{v \in V: B(v,M)\}
 $$
 
 The weight of Byzantine faults evidenced in a set of messages $M$ is the sum of the weights of validators who are Byzantine in $M$.
 
+\begin{defn}[Fault weight]
 \begin{align}
-F(M) = \sum_{\substack{v \in V \\ B(v, M)}} W(v)
+F(M) = \sum_{v \in B(M)} W(v)
 \end{align}
+\end{defn}
 
 We can now define our protocol states $\Sigma \subset \mathcal{P}(\mathcal{M})$ as the sets of protocol messages that exhibit less than $t$ faults, by weight:
 
@@ -293,7 +303,7 @@ So, to be more formal, in Casper the Friendly Ghost we have protocol messages, $
 \end{equation*}
 \end{defn}
 
-The definitions of the ``helper functions'' $E$, $V$, and $J$, and the definitions of ``dependency'', ``later'', ``latest messages'', and ``validator weights'' given in the previous section binary consensus also apply unchanged to the blockchain consensus. We will therefore use these here without giving the definitions again. 
+The definitions of the ``helper functions'' ($E$, $V$, and $J$), ``dependency'', ``later'', ``latest messages'', and ``validator weights'' given in the previous section binary consensus are defined precisely in the same way here. We will therefore use them without giving the definitions again.
 
 We do need a couple of new terms, though, to define the fork choice rule. We will write $b_1 \downarrow b_2$ and say that block $b_1$ is ``in the blockchain'' of block $b_2$, if 
 
@@ -345,7 +355,7 @@ We now have the language required to define the estimator for the blockchain con
 
 We are going to assume that ``hash'' has the property that out of any set of blocks, only one has the lowest hash. Using the hashes of blocks to eliminate ``ties'' means that the estimator for the blockchain consensus doesn't need to ever output an exception. Previously $\emptyset$ would be returned by the binary estimator, when $0$ and $1$ had the same score). This means that a message $m$ is valid if $E(m) = \mathcal{E}(J(m))$, and just as in the binary consensus we will insist that all the blocks are valid. \footnote{Following the process decribed in the footnote about excluding invalid messages from the binary consensus.}
 
-Equivocation, Byzantine fault detection, protocol states, and prtocol state transitions are defined here in \emph{precisely} the same way as in the binary consensus. We therefore don't give the definitions again. 
+Equivocation, Byzantine faulty nodes, fault weight, protocol states, and protocol state transitions are defined here in \emph{precisely} the same way as in the binary consensus. We therefore don't give the definitions again. 
 
 We can now give the definition of estimate safety for Casper the Friendly Ghost, for a block $b$ in a protocol state $\sigma$.
 
