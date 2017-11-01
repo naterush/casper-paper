@@ -163,7 +163,7 @@ But we will also call $m_1$ a dependency of $m_2$ if $m_1 = m_2$:
 \begin{defn}[dependency, $\prec$]
 \begin{equation*}
 \begin{split}
-m_1 \prec m_2 \iff & m_1 = m_2 \text{ or } \exists m' \in J(m_2) \hspace{1mm} . \hspace{1mm} m' \prec m_2
+m_1 \prec m_2 \iff & m_1 = m_2 \text{ or } \exists m' \in J(m_2) \hspace{1mm} . \hspace{1mm} m_1 \prec m'
 \end{split}
 \end{equation*}
 \end{defn}
@@ -367,12 +367,18 @@ $$
 
 Because this construction satisfies the terms of our consensus safety proof, we know that decisions on safe estimates in this protocol are consensus safe (if there are less than $t$ Byzantine faults (by weight)). 
 
-We are now ready to give a mechanism that nodes can use to detect which of their estimates are safe, in the binary consensus and in the blockchain consensus.
+So we are now ready to give a mechanism that nodes can use to detect which of their estimates are safe, in the binary consensus and in the blockchain consensus.
 
-\section{Safety Oracles}
+\section{A Simple Safety Oracle}
+
+\section{Subjective Fault Tolerance Thresholds}
 
 \section{Validator Rotation}
 
 \section{Liveness Considerations}
+
+\section{Experimental Observations}
+
+\section{Conclusion}
 
 \end{document}
