@@ -6,6 +6,8 @@
 \usepackage{tikz-cd}
 \usepackage{etoolbox}
 
+\input{eth_header.tex}
+
 \usepackage{geometry}
  \geometry{
  a4paper,
@@ -20,7 +22,7 @@
 
 \theoremstyle{definition}
 \newtheorem{thm}{Theorem}
-\newtheorem{lemma}{Lemma}
+%\newtheorem{lemma}{Lemma}
 \newtheorem{defn}{Definition}[section]
 
 \newcommand{\notimplies}{%
@@ -49,11 +51,12 @@
 
 \begin{document}
 
-\title{Casper research: \\ A Template for Correct-by-Construction Consensus Protocols \\ Featuring:\\ A specification of Casper the Friendly GHOST}
+\title{A Template for Correct-by-Construction Consensus Protocols \\ \vspace{5mm} \small{DRAFT v0.1}}
+\author{Vlad Zamfir \\ Ethereum Foundation}
 \maketitle
 
 \begin{abstract}
-We detail a process for generating correct-by-construction consensus protocols while providing language and ideas for reasoning about consensus protocols. Then we share the specifications of and experimental observations from two consensus protocols that are derived according to this method---one replicating a single bit, and another replicating a blockchain (i.e. Casper the Friendly GHOST).
+We detail a process for generating correct-by-construction consensus protocols while providing language and ideas for reasoning about consensus protocols. Then we share the specifications of and experimental observations from two consensus protocols that are derived according to this method---one replicating a single bit, and another replicating a blockchain (i.e. Casper the Friendly Ghost).
 \end{abstract}
 
 
