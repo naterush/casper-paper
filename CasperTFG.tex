@@ -380,7 +380,7 @@ Estimate safety is also parametric in a value of the estimate which is somehow i
 
 An ``ideal adversary'' return an ``attack'', a future protocol state $\sigma'$ such that $\sigma \to \sigma'$, with an estimator $\mathcal{E}(\sigma')$ that ``disagrees'' with the candidate estimate if and only if such a protocol state exists in $\Sigma_t$. We might imagine that such an adversary would be strategic about which possible future states they search. An ``ideal safety oracle'' would indicate safety whenever the ideal adversary fails to find an attack.
 
-If we can detect \emph{only some} of the circumstances in which the ideal adversary will fail to find an attack, then we can construct a safety oracle which is able to detect safety in some of the states with estimate safety. The cases may be available enough for it for it to be useful in an implementation even though it may not be an ideal safety oracle.
+If we can detect \emph{only some} of the circumstances in which the ideal adversary will fail to find an attack, then we can construct a safety oracle which is able to detect safety in some of the states with estimate safety. The cases may be available enough for it to be useful in an implementation due to efficiency considerations, even though it may not be an ideal safety oracle.
 
 We will identify such a set of circumstances. So that we don't have to talk in a case-by-case basis about this safety oracle, we will denote ``agreement'' between estimate $e$ and estimate $e'$ as $e \equiv e'$. This correspond to $e = e'$ in the binary consensus, and $e \downarrow e'$ in the blockchain consensus. Disagreement will be denoted with $\not\equiv$.
 
