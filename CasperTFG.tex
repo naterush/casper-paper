@@ -2,6 +2,7 @@
 \usepackage{graphicx}
 \usepackage{amsthm}
 \usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{amssymb}
 \usepackage{tikz-cd}
 \usepackage{etoolbox}
@@ -248,19 +249,19 @@ F(M) = \sum_{v \in B(M)} W(v)
 \end{align}
 \end{defn}
 
-We can now define our protocol states $\Sigma \subset \mathcal{P}(\mathcal{M})$ as the sets of protocol messages that exhibit less than $t$ faults, by weight:
+We can now define our protocol states $\Sigma_t \subset \mathcal{P}(\mathcal{M})$ as the sets of protocol messages that exhibit less than $t$ faults, by weight:
 
 \begin{defn}[Protocol States]
 \begin{align}
-\Sigma = \left\{\sigma \subseteq \mathcal{M}: F(\sigma) \leq t \right\}
+\Sigma_t = \left\{\sigma \subseteq \mathcal{M}: F(\sigma) \leq t \right\}
 \end{align}
 \end{defn}
 
-And we can also define ``protocol executions'' as directed paths between states in $\Sigma$ so that an execution from $\sigma \in \Sigma$ to $\sigma' \in \Sigma$ exists if and only if $\sigma \subseteq \sigma'$. We write the existence of such a state transition as $\sigma \to \sigma'$.
+And we can also define ``protocol executions'' as directed paths between states in $\Sigma_t$ so that an execution from $\sigma \in \Sigma_t$ to $\sigma' \in \Sigma_t$ exists if and only if $\sigma \subseteq \sigma'$. We write the existence of such a state transition as $\sigma \to \sigma'$.
 
 \begin{defn}[Protocol Executions]
 \begin{align}
-\forall \sigma, \sigma' \in \Sigma \hspace{5mm} : \sigma \to \sigma' \iff \sigma \subseteq \sigma'
+\forall \sigma, \sigma' \in \Sigma_t \hspace{5mm} : \sigma \to \sigma' \iff \sigma \subseteq \sigma'
 \end{align}
 \end{defn}
 
@@ -270,7 +271,7 @@ We can now give the definition of estimate safety for the Binary Consensus, for 
 
 \begin{defn}[Binary Estimate Safety]
 $$
-S(e, \sigma) \iff \forall \sigma' \in \Sigma: \sigma \to \sigma' \implies e = \mathcal{E}(\sigma')
+S_t(e, \sigma) \iff \forall \sigma' \in \Sigma_t: \sigma \to \sigma' \implies e = \mathcal{E}(\sigma')
 $$
 \end{defn}
 
@@ -361,7 +362,7 @@ We can now give the definition of estimate safety for Casper the Friendly Ghost,
 
 \begin{defn}[Blockchain Estimate Safety]
 $$
-S(b, \sigma) \iff \forall \sigma' \in \Sigma: \sigma \to \sigma' \implies b \downarrow \mathcal{E}(\sigma')
+S_t(b, \sigma) \iff \forall \sigma' \in \Sigma_t: \sigma \to \sigma' \implies b \downarrow \mathcal{E}(\sigma')
 $$
 \end{defn}
 
@@ -371,7 +372,103 @@ So we are now ready to give a mechanism that nodes can use to detect which of th
 
 \section{A Simple Safety Oracle}
 
+Estimate safety is parametric in some protocol state $\sigma$, and is a property all of its future protocol states. The challenge with estimate safety is that there are (at least in our cases) an infinite number of possible future protocol states. Still nodes somehow need to make a determination about whether or not an estimate is safe in a finite (ideally very short) amount of time.
+
+Estimate safety is also parametric in a value of the estimate which is somehow invariant in the estimator $\mathcal{E}$ over these future states. We will refer to the estimate whose safety is being determined as ``the candidate estimate''.
+
+An ``ideal adversary'' return an ``attack'', a future protocol state $\sigma'$ such that $\sigma \to \sigma'$, with an estimator $\mathcal{E}(\sigma')$ that ``disagrees'' with the candidate estimate if and only if such a protocol state exists in $\Sigma_t$. We might imagine that such an adversary would be strategic about which possible future states they search. An ``ideal safety oracle'' would indicate safety whenever the ideal adversary fails to find an attack.
+
+If we can detect \emph{only some} of the circumstances in which the ideal adversary will fail to find an attack, then we can construct a safety oracle which is able to detect safety in some of the states with estimate safety. The cases may be available enough for it for it to be useful in an implementation even though it may not be an ideal safety oracle.
+
+We will identify such a set of circumstances. So that we don't have to talk in a case-by-case basis about this safety oracle, we will denote ``agreement'' between estimate $e$ and estimate $e'$ as $e \equiv e'$. This correspond to $e = e'$ in the binary consensus, and $e \downarrow e'$ in the blockchain consensus. Disagreement will be denoted with $\not\equiv$.
+
+We will say that validator $v_i$ ``sees validator $v_j$ agreeing with estimate $e$ in a set of protocol messages $M$'' if:
+\begin{itemize}
+\item $v_i$ has exactly one latest message in $M$ (we are denoting this message as $L(v_i, M)$)
+\item $v_j$ has exactly one latest message in the justification of $v_i$'s latest message, $J(L(v_i, M))$ (which we denote as $L(v_j, J(L(v_i, M))))$
+\item This message's estimate agrees with $e$, i.e. $E(L(v_j, J(L(v_i, M))))) \equiv e$
+\end{itemize}
+
+\begin{defn}[$v_i$ sees $v_j$ agreeing with $e$ in $M$]
+$$
+v_i \xrightarrow[\text{$M$}]{\text{$\equiv, e$}} v_j \iff E(L(v_j, J(L(v_i, M)))) \equiv e
+$$
+\end{defn}
+
+And we will say that a validator $v_i$ ``can see $v_j$ disagreeing with estimate $e$ in a set of protocol messages $M$'' if:
+\begin{itemize}
+\item $v_i$ has exactly one latest message in $M$, $L(v_i, M)$
+\item $v_j$ has exactly one latest message in the justification of $v_i$'s latest message, $J(L(v_i, M))$ (which we denote as $L(v_j, J(L(v_i, M))))$
+\item $v_j$ has a ``new latest message for $v_i$'' $m \in M$ such that $m \succ L(v_j, J(L(v_i, M))))$
+\item And this $m$ disagrees with $e$, $E(m) \not\equiv e$
+\end{itemize}
+
+\begin{defn}[$v_i$ can see $v_j$ disagreeing with $e$ in $M$]
+$$
+v_i \xRightarrow[\text{$M$}]{\text{$\not\equiv, e$}} v_j \iff \exists m \in M : V(m) = v_j m \succ L(v_j, J(L(v_i, M)))) \land E(m) \not\equiv e
+$$
+\end{defn}
+
+A set of non-Byzantine nodes in $M$ \emph{who each mutually see each other agreeing with $e$ in $M$ and also mutually can't see each other disagreeing with $e$ in $M$} are called an ``$e$-clique'' in $M$.
+
+So our aim is going to be to show that if there is an $e$-clique in $M$ with total weight $W'$, and $2*W' > \sum_{v\in V} W(v)$, then $e$ is safe for the protocol with states $\Sigma_t$ for $t = 0$. We won't give a rigorous proof, but the idea is simple enough. If nodes in an $e$-clique see each other agreeing on $e$ and can't see each other disagreeing on $e$, then there isn't any message from inside the clique that will cause them to assign lower scores to $e$. Further, if the clique has more than half of the weight, then no external messages could raise the scores these validators assign to a competing estimate to be higher than the score they assign to $e$. Messages from senders who are inside or outside the clique therefore won't be able to change the estimates of senders inside the clique, and the ideal adversary will necessarily fail.
+
+We can also show that if $e$-clique in $M$ with total weight $W'$, and $2*W' > \sum_{v\in V} W(v)$, then $e$ is safe as long as $2*W' - \sum_{v\in V} W(v) \leq t - F(M)$, but we will leave this for a future draft of this work.
+
+We present the pseudocode for the ``clique oracle'' that uses this result to detect estimate safety:
+
+\begin{algorithm}[H]
+ \KwData{An estimate $e$, a set of messages $M \in \Sigma_t$} 
+ \KwResult{True or False, an indicator when $e$ is safe in $M \in \Sigma_t$}
+ 
+
+
+  $N$ = a fully network with undirected edges and validator names $V$ as nodes
+
+  \For{each non-Byzantine validator, $v_i \in B(M)$}{
+    \For{each non-Byzantine validator, $v_j \in B(M)$}{
+      \If{$v_i$ doesn't see $v_j$ agreeing with $e$ in $M$ (not $v_i \xrightarrow[\text{$M$}]{\text{$\equiv, e$}} v_j$)}{
+        $N$.remove\_edge($(v_i, v_j)$)
+      }
+      \If{$v_i$ can see $v_j$ disagreeing with $e$ in $M$ ($v_i \xRightarrow[\text{$M$}]{\text{$\not\equiv, e$}} v_j$)}{
+        $N$.remove\_edge($(v_i, v_j)$)
+      }
+    }
+  }
+
+  $N'$ = $N$.maximum\_weight\_fully\_connected\_subcomponent(weights=$W$)
+
+  clique\_weight = $\sum_{v \in N'.nodes} W(v)$
+
+  total\_weight = $\sum_{v \in V} W(v)$
+
+  \If{2*clique\_weight $\leq$ total\_weight}{
+    \Return{False}
+  }
+  
+  \If{2*clique\_weight $>$ total\_weight}{ 
+    initial\_fault\_weight = $F(M)$ (this will be $\leq t$ because $M \in \Sigma_t$)
+    fault\_tolerance = 2*clique\_weight - total\_weight
+  
+    \eIf{fault\_tolerance + initial\_fault\_weight > $t$}
+    {
+      \Return{True}
+    }{
+      \Return{False}
+    }
+  }
+
+\caption{The ``Clique Oracle'', $\mathcal{E}$}
+\end{algorithm}
+
+Now that we have an implementable safety oracle, we are able to equip nodes in both Casper the Friendly Binary Consensus and in Casper the Friendly Ghost with the ability to detect estimate safety. This will allow them to \emph{actually} rather than \emph{only hypothetically} make (consensus safe) decisions on safe estimates.
+
+
 \section{Subjective Fault Tolerance Thresholds}
+
+
+
+
 
 \section{Validator Rotation}
 
