@@ -134,9 +134,9 @@ The definitions of the estimator and of validity will appear later. For now, we 
 \end{defn}
 
 $\mathcal{M}_0$ is the ``base case'', the set of messages with ``null justifications''. $\mathcal{M}_n$ is the set of messages at ``height'' $n$, which have messages of height $n-1$ (and/or lower) in their justification. Note that messages $\mathcal{M}_0$ have height $0$. $\mathcal{P}$ denotes the ``power set'' function, which maps sets to the set of all of their subsets, so $\mathcal{P}(\bigcup_{i=0}^{n-1} \mathcal{M}_i)$ denotes all sets of protocol messages at height $n$ or lower.
-	
+  
 The estimator is a function that maps sets of protocol messages to $0$ or $1$, or a null value denoted by $\emptyset$:
-	
+  
 \begin{equation*}
 \begin{split}
     \mathcal{E}:\mathcal{P}(\mathcal{M}) \to \{0, 1\} \cup \{\emptyset\}
@@ -207,9 +207,9 @@ Finally, we can define the estimator for the Binary consensus, it returns the es
 
 \begin{defn}[Binary Estimator]
 \begin{align}
-	\mathcal{E}(M) &= 0 &\text{ if } \text{Score}(0, M) > \text{Score}(1, M), \\
-	\mathcal{E}(M) &= 1 &\text{ if } \text{Score}(1, M) > \text{Score}(0, M), \\
-	\mathcal{E}(M) &= \emptyset &\text{ if } \text{Score}(1, M) = \text{Score}(0, M)
+  \mathcal{E}(M) &= 0 &\text{ if } \text{Score}(0, M) > \text{Score}(1, M), \\
+  \mathcal{E}(M) &= 1 &\text{ if } \text{Score}(1, M) > \text{Score}(0, M), \\
+  \mathcal{E}(M) &= \emptyset &\text{ if } \text{Score}(1, M) = \text{Score}(0, M)
 \end{align}
 \end{defn}
 
@@ -244,49 +244,54 @@ We have yet to talk about how nodes running the binary consensus protocol can de
 
 But now that we've covered the binary consensus protocol, it will be a lot easier for us to specify the blockchain consensus protocol.
 
+
 \section{Casper the Friendly Ghost}
 
-The specification of Casper the Friendly Ghost is going to proceed along \emph{very} similar lines to the binary consensus protocol. We will again define protocol messages and then the estimator, which is going to be the Greedy Heaviest-observed Sub-tree (GHOST) ``fork choice rule''.
+The specification of Casper the Friendly Ghost is going to proceed along \emph{very} similar lines as Casper the Friendly Binary Consensus. We will again first define the set of all protocol messages and then the estimator, which this time is going to be the Greedy Heaviest-observed Sub-tree (GHOST) ``fork choice rule''. Finally, we will define protocol states as sets of messages with less than $t$ Byzantine faults.
 
-The definition of protocol messages is again going to be parametric in a set of validator names, $\mathcal{V}$. 
+Protocol messages are called ``blocks'' and have the same three components as the messages in the binary consensus protocol; an estimate, a sender and a justification. The estimate is a block, called ``the prevblock'' or ``the parent block''. For valid messages, the estimate will be the block on the head of the blockchain chosen by fork choice rule in the justification. The ``sender'' (a validator name) field is defined precisely as before. Finally, the justification is again simply a set of protocol messages.
 
-Protocol messages are called ``blocks'' and have the same three components as the messages in the binary consensus protocol. The ``estimate'' is a block, called ``the prevblock'' or ``the parent block''. For valid messages, the estimate will be the block on the head of the blockchain chosen by fork choice rule in the justification. The ``sender'' (a validator name) is defined and treated as before. Finally, the justification is again simply a set protocol message. 
+So, to be more formal, in Casper the Friendly Ghost we have protocol messages, $\mathcal{M}$, with the following form (again parametric in a set of validator names, $\mathcal{V}$): 
 
 
-So, to be more formal, for the blockchain consensus we have protocol messages (blocks) which have following form:
-
-\begin{equation}
+\begin{defn}[Blocks]
+\begin{equation*}
 \begin{split}
-	&\text{Genesis Block} = \{\emptyset\} \times \{\emptyset\} \times \{\emptyset\}\\
+  &\text{Genesis Block} = \{\emptyset\}\\
     &\mathcal{M}_0 = \{\text{Genesis Block}\} \times V \times \{\text{Genesis Block}\}\\
     &\mathcal{M}_n = \bigcup_{i=0}^{n-1} \mathcal{M}_i \times V \times \mathcal{P}(\bigcup_{i=0}^{n-1} \mathcal{M}_i)\\
     &\mathcal{M} = \{\text{Genesis Block}\} \cup \lim_{n \to \infty} \bigcup_{i=0}^{n} \mathcal{M}_i
 \end{split}
-\end{equation}
+\end{equation*}
+\end{defn}
 
-The definitions of the ``helper functions'' $E$, $S$, and $J$, and the definitions of ``dependency'', ``later'', ``latest messages'', and ``validator weights'' given in the previous section binary consensus also apply unchanged to the blockchain consensus. We will therefore use these definitions here without giving the same definitions again. 
+The definitions of the ``helper functions'' $E$, $V$, and $J$, and the definitions of ``dependency'', ``later'', ``latest messages'', and ``validator weights'' given in the previous section binary consensus also apply unchanged to the blockchain consensus. We will therefore use these here without giving the definitions again. 
 
-Before we are ready define the esimator $\mathcal{E}: \mathcal{P}(\mathcal{M}) \to \mathcal{M}$, though, we will need a couple of more notions.
+We do need a couple of new terms, though, to define the fork choice rule. We will write $b_1 \downarrow b_2$ and say that block $b_1$ is ``in the blockchain'' of block $b_2$, if 
 
-We will write $m_1 | m_2$ and say that block $m_1$ is ``in the blockchain'' of block $m_2$, if 
-
+\begin{defn}[Blockchain membership, $b_1 \downarrow b_2$]
 \begin{align}
-	m_1 | m_2 &\iff m_1 = m_2 \text{ or } m_1 = E(m_2) \text{ or } m_1 | E(m_2) 
+  b_1 \downarrow b_2 &\iff b_1 = b_2 \text{ or } b_1 \downarrow E(b_2) 
 \end{align}
+\end{defn}
 
-We can then define the ``score'' of a block $e$ as
+So now we define the ``score'' of a block $b$ given a set of protocol messages $M$ as the total weight of validators with latest blocks $b'$ such that $b \downarrow b'$.
 
+\begin{defn}[Score of a block]
 \begin{align}
-S(e, M) = \sum_{\substack{v \in V \\ m \in L(v,M) \\ e|E(m)}} W(v)
+\text{Score}(b, M) = \sum_{\substack{v \in V \\ m \in L(v,M) \\ b|E(m)}} W(v)
 \end{align}
+\end{defn}
 
-And the ``children'' of a block $e$ in a set of protocol messages $M$ are the blocks with $e$ as their prevblock.
+The ``children'' of a block $b$ in a set of protocol messages $M$ are the blocks with $b$ as their prevblock.
 
 $$
-C(e,M) = \{b \in M : E(b) = e\}
+C(b,M) = \{b' \in M : E(b') = b\}
 $$
 
 We now have the language required to define the estimator for the blockchain consensus, the Greedy Heaviest-Observed Sub-Tree rule!
+\begin{defn}[The Greedy Heaviest-Observed Sub-tree Fork-choice rule, $\mathcal{E}$]
+\end{defn}
 
 \begin{algorithm}[H]
  \KwData{A set of blocks $M$}
@@ -294,24 +299,39 @@ We now have the language required to define the estimator for the blockchain con
  $b$ = Genesis Block
 
  \While{$b$ has children ($C(b,M)$ is nonempty)}{
- 	scores = dict()
+  scores = dict()
 
-	\For{each child of block $b$, $b' \in C(e,M)$}{
-	scores[$b'$] = $S(b', M)$
-	}
-	\eIf{scores has a unique maximum}{
-	  $b$ = argmax(scores)
-	}{
-      $b$ = the max score block with the lowest hash
-	}
+  \For{each child of block $b$, $b' \in C(b,M)$}{
+  scores[$b'$] = $\text{Score}(b', M)$
   }
+  \eIf{scores has a unique maximum}{
+    $b$ = argmax(scores)
+  }{
+      $b$ = the max score block with the lowest hash
+  }
+}
 \Return{b}
 
 \caption{The Greedy Heaviest-Observed Sub-tree Fork-choice rule, $\mathcal{E}$}
 \end{algorithm}
 
-Byzantine fault detection is defined here in precisely the same way as in the binary consensus. We will therefore not give the definitions again. Finally, the protocol states $\Sigma \subset \mathcal{M}$ similarly will have $M \in \Sigma \implies F(M) < t$, and the protocol will (as with the binary consensus) thereby have consensus safety that tolerates up to $t$ Byzantine faults.
+We are going to assume that ``hash'' has the property that out of any set of blocks, only one has the lowest hash. Using the hashes of blocks to break ties means that $\mathcal{E}$ for the blockchain consensus doesn't need to ever output an exception. Previously $\emptyset$ would be returned by the binary estimator, when $0$ and $1$ had the same score). This means that a message $m$ is valid only requires insisting that $E(m) = \mathcal{E}(J(m))$. And just as in the binary consensus we will insist that all the blocks are valid.
 
+Byzantine fault detection is defined here in \emph{precisely} the same way as in the binary consensus. We therefore don't give the definitions again. 
+
+So we can alread define Casper the Friendly Ghost's protocol states $\Sigma \subset \mathcal{P}(\mathcal{M})$, which are sets of blocks that exhibit less than $t$ Byzantine faults, $F(M) < t$, for any $M \in \Sigma$.
+
+We can now give the definition of estimate safety for Casper the Friendly Ghost, for a block $b$ in a protocol state $\sigma$.
+
+\begin{defn}[Blockchain Estimate Safety]
+$$
+S(b, \sigma) \iff \forall \sigma' \in \Sigma: \sigma \to \sigma' \implies b \downarrow \mathcal{E}(\sigma')
+$$
+\end{defn}
+
+Because this construction satisfies the terms of our consensus safety proof, we know that decisions on safe estimates in this protocol are consensus safe (if there are less than $t$ Byzantine faults (by weight)). 
+
+We are now ready to give a mechanism that nodes can use to detect which of their estimates are safe, in the binary consensus and in the blockchain consensus.
 \section{Safety Oracles}
 
 \section{Validator Rotation}
