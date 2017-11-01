@@ -7,6 +7,7 @@
 \usepackage{etoolbox}
 \usepackage[]{algorithm2e}
 
+\input{eth_header.tex}
 
 \usepackage{geometry}
  \geometry{
@@ -22,7 +23,7 @@
 
 \theoremstyle{definition}
 \newtheorem{thm}{Theorem}
-\newtheorem{lemma}{Lemma}
+%\newtheorem{lemma}{Lemma}
 \newtheorem{defn}{Definition}[section]
 
 \newcommand{\notimplies}{%
@@ -64,11 +65,11 @@ For pedogological reasons, the document first specifies a binary consensus proto
 
 Consensus protocols are used by nodes in distributed systems to decide on the same consensus values, or on the same list of inputs to a replicated state machine. This is a challenging problem because of network latency and because of the presence of faulty nodes. Arbitrary network latency, for example, means that nodes recieve distinct sets of messages, while the messages that they each received may have arrive in different orders. Faulty nodes may go offline, or they may behave in an arbitrary manner. 
 
-There are, roughly speaking, two broad classes of consensus protocols known today. One we refer to as ``traditional consensus''. This class has its ``genetic roots'' in Paxos and multi-Paxos[CITE], and in the ``traditional'' consensus protocol research from the 80s and 90s[CITE]. The other we refer to as ``blockchain consensus''. These are protocols that have their roots in the Bitcoin blockchain and Satoshi Nakamoto's whitepaper[CITE]. We will first discuss the differences between these classes of protocols. Then we will give an overview of the safety proof that the protocols given in this document satisfy, and then finally the specifications of the protocols at hand.
+There are, roughly speaking, two broad classes of consensus protocols known today. One we refer to as ``traditional consensus''. This class has its ``genetic roots'' in Paxos and multi-Paxos, and in the ``traditional'' consensus protocol research from the 80s and 90s\cite{lamport_1998}. The other we refer to as ``blockchain consensus''. These are protocols that have their roots in the Bitcoin blockchain and Satoshi Nakamoto's whitepaper\cite{nakamoto}. We will first discuss the differences between these classes of protocols. Then we will give an overview of the safety proof that the protocols given in this document satisfy, and then finally the specifications of the protocols at hand.
 
 \subsection{Comparing Traditional Consensus to Blockchain Consensus}
 
-Traditional consensus protocols (such as multi-Paxos and pbft) are notoriously difficult to understand[CITE (http://paxos.systems/)]. Blockchain consensus protocols, on the other hand, are much more accessible. This difference comes at least in part from the relative simplicity of Bitcoin's specification[CITE].
+Traditional consensus protocols (such as multi-Paxos and pbft) are notoriously difficult to understand\cite{paxos}. Blockchain consensus protocols, on the other hand, are much more accessible. This difference comes at least in part from the relative simplicity of Bitcoin's specification[CITE].
 
 In the context of state machine replication, traditional protocols decide (with irrevocable finality) on one ``block'' of state transitions/transactions to add to the shared operation log at a time. To decide on a block, a node must receive $\mathcal{O}(N)$ messages, where $N$ is the number of consensus-forming nodes.
 
@@ -318,4 +319,6 @@ Byzantine fault detection is defined here in precisely the same way as in the bi
 
 \section{Liveness Considerations}
 
+\bibliographystyle{naturemag}
+\bibliography{ethereum}
 \end{document}
