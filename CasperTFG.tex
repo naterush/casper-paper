@@ -7,6 +7,7 @@
 \usepackage{tikz-cd}
 \usepackage{etoolbox}
 \usepackage[]{algorithm2e}
+\usepackage[section]{placeins}
 
 
 \usepackage{geometry}
@@ -466,16 +467,97 @@ Now that we have an implementable safety oracle, we are able to equip nodes in b
 
 \section{Subjective Fault Tolerance Thresholds}
 
+It turns out that the consensus safety proof can be adapted to talk about the consensus safety of decisions on safe estimates by nodes who are running any of these ``correct-by-construction'' consensus protocols \emph{at different levels of fault tolerance}.
 
+We can have one node executing the protocol in $\Sigma_{t_1}$ while another node running in $\Sigma_{t_2}$. Their decisions (which happen only on safe estimates, of course) will have consensus safety as long as the union of their states exhibits less than the smallest of $t_1$ and $t_2$ faults (by weight).
 
+This is because the protocol states in these different protocols are identical, except for the fact that one of them also includes protocol states that exhibit even more Byzantine faults than the other. If for example $t_1 < t_2$, then $\Sigma_{t_1} \subset \Sigma_{t_2}$. This means a node at $\sigma_2 \in \Sigma_{t_2}$ will share a common future with a node at $\sigma_1 \in \Sigma_{t_1}$ as long as it isn't in a state $\sigma_2$ such that $F(\sigma_1 \cup \sigma_2) > t_1$.
 
+Removing fault tolerance thresholds from the protocol and making them settings that each node who uses the consensus protocol can set independently has a number of attractive properties. It means that an attacker may not know the fault tolerance threshold of their targets. There are also economic benefits, but they are out of scope for this paper.\footnote{Briefly, removing in-protocol fault tolerance thresholds allows every node to marginally contribute to consensus (since more fault tolerance may allow more nodes to find safety) and therefore have a positive contribution to any cartel (and therefore it shouldn't be in the cartel's interest to censor them). It also removes focal points for cartelization.} 
 
-\section{Validator Rotation}
+\section{Casper the Friendly Ghost with Validator Rotation}
+
+We can define a modified version of Casper the Friendly Ghost which allows for dynamically changing sets of consensus forming nodes (and/or their weights). The protocol specification will work as normal, so we will be lighter on the details.
+
+We will have block structures that are modified so that the justifications also include a weights map.
+
+\begin{defn}[Blocks]
+\begin{equation*}
+\begin{split}
+  &\text{Genesis Block} = \{\emptyset\} \times \{\emptyset\} \times (\{\emptyset\} \times \{W_{genesis}\})\\
+    &\mathcal{M}_0 = \{\text{Genesis Block}\} \times V \times (\{\text{Genesis Block}\} \times \mathcal{W})\\
+    &\mathcal{M}_n = \bigcup_{i=0}^{n-1} \mathcal{M}_i \times V \times (\mathcal{P}(\bigcup_{i=0}^{n-1} \mathcal{M}_i) \times \mathcal{W}))\\
+    &\mathcal{M} = \{\text{Genesis Block}\} \cup \lim_{n \to \infty} \bigcup_{i=0}^{n} \mathcal{M}_i
+\end{split}
+\end{equation*}
+\end{defn}
+
+And we the block score to use the weights in the parent block. The score, remember, is used to by the GHOST fork choice rule choose between children of some block. Those children (naturally) have the same parent, and therefore will have scores determined by the latest messages from the same validators.
+
+\begin{defn}[Score of a block, for Casper the Friendly Ghost with validator rotation]
+\begin{align}
+\text{Score}(b, M) = \sum_{\substack{v \in V \\ m \in L(v,M) \\ b|E(m)}} J(E(b)).W(v)
+\end{align}
+\end{defn}
+
+Using ```$J(m).W$'' to pick out the weights from the justification of $m$.
+
+The rest of the definitions in the protocol remain completely identical (including the estimator, the protocol states/transitions, and the safety oracle), and therefore will not be stated here again. We are therefore finished specifying Casper the Friendly Ghost with validator rotation, a consensus protocol which tolerates up to $t$ Byzantine faults. \footnote{Since we allowed completely unrestrained changes in the validator set between any block and any of its children. This means that while we always will have estimate safety unless there are $t$ or more faults for nodes running $\Sigma_t$, we haven't restricted the total sum of the weights to be constant (or even greater than $t$). In practice, we will either restrict the sum of the weights to be constant or redefine $t$ so that it refers to a proportion of the weight.}
+
 
 \section{Liveness Considerations}
 
+Traditionally, we would like to show that the protocol ``has liveness'', i.e. that nodes running the consensus protocol \emph{eventually} will decide on a value. For us, the corresponding guarantee will be that nodes \emph{eventually} detect that they have a safe estimate.
+
+FLP impossibility shows that it's impossible for consensus protocols like ours (which don't use non-determinism or cryptography) to be live in an ``asynchronous network'', which is to say, without making assumptions about the timing of message propagation (or the order of message arrival). 
+
+We haven't yet made any synchrony assumptions of any kind, which is why the consensus protocols given here are asynchronously safe. Moreover, we haven't said anything about when nodes \emph{should} send protocol messages. We instead have relatively loose constraints on the protocol executions that nodes can take (they can receive messages and move to any state $\sigma' \supset \sigma$ from $\sigma$, as long as $\sigma'$ does not evidences too many Byzantine faults).
+
+This absence of a specified strategy for how validators should make blocks means that we cannot at the moment give a liveness proof. However, we will see some experimental observations where estimate safety is accomplished in the following section. These protocol executions will correspond to message arrival orders which are live, and we can therefore construct reliable strategies for achieving liveness as long as nodes can coordinate timeouts in order to (eventually) produce the desired ``shape'' of protocol messages. And in a synchronous or partically synchonous network (i.e. one where there's a known or unknown bound on the message arrival time) timeout coordination is (at least eventually) possible.
+
+Nonetheless, liveness considerations are considered largely out of scope, and should be treated in future work.
+
+\pagebreak
 \section{Experimental Observations}
 
+Early prototypes of both Casper the Friendly Binary Consensus and Casper the Friendly Ghost have been implemented, and the following graphics represent observations of executions of these protocols with various message passing orders. \footnote{The code is available at github.com/ethereum/casper-cbc}
+
+In all of these representations, each message is represented by a node in the graph. Messages from the same validator are vertically aligned. And later messages are always displayed higher than their dependencies.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\caption{A Binary consensus protocol execution. Dotted lines are messages included in the justification of the later message. The label on the nodes represents the estimate of the message. A message is coloured if it has achieved some amount of Byzantine fault tolerant estimate safety, accoring to a clique oracle given its justification. The darker the colour, the more faults are tolerated by the estimate}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\caption{Blockchain protocol execution with 3 validators, $v_0, v_1, v_2$. Each node labeled $0$ is the first message from that validator, and the nodes in the verical lines above each validator represent messages made by that validator. Dotted black lines are messages included in the justification of the later message. Blue lines represent the forkchoices of the validators given by their latest blocks. Solid grey lines prevblock pointers (that aren't blue because they are no longer the validator's forkchoice. The red line is the result of applying GHOST to the set of messages displayed here.}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\caption{In this execution of the blockchain consensus protocol, we observe some safe blocks. They are colour coded the same way as in the earlier, however this time they represent the blocks that are seen to be safe from the view that includes all of the nodes. In contrast, in the binary consensus we displayed safety that was detected locally.}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{3nodeblockchain.png}
+\caption{Finally, in this execution of the blockchain consensus protocol, where the validators are able to pass blocks around in a ``round-robin'' configuration, we observe the $\mathcal{O}(1)$ messages received per (finalized) block. This is possible because each block contributes to the consensus safety of many blocks.}
+\end{figure}
+
 \section{Conclusion}
+
+We have given a brief overview of the consensus safety proof that Casper the Friendly Ghost has been derived to satisfy (in a ``correct-by-construction'' manner). Then we defined a binary consensus protocols (Casper the Friendly Binary Consensus) that satisfy the terms of the proof and therefore benefit from the results. We then remarkably slightly modified the binary consensus protocol to give the blockchain based consensus protocol (which can be adopted for, or even termed as sequential state machine replication). 
+
+Then we further witnessed the power of the safety proof when we showed that we can remove the fault tolerance threshold from the protocol and do validator rotation without making significant changes to the protocol. Finally, we saw (as advertised) that it's possible for Casper the Friendly Ghost to decide on blocks with consensus safety that tolerates $t$ Byzantine faults (in an asynchronous network) with $\mathcal{O}(1)$ messages per block. 
+
+We hope this work has been educational and will lead to the development of many interesting and useful consensus protocols.
+
 
 \end{document}
