@@ -117,7 +117,7 @@ And indeed, both of the protocols specified here have the property that the unio
 
 \section{Casper the Friendly Binary Consensus}
 
-We will specify the Binary consensus protocol by first defining protocol messages, then by defining the estimator (which maps sets of protocol messages to $0$ or $1$). Next we will give a way to count Byzantine faults, and finally define the ``protocol states'' and ``protocol state transitions'' that are allowed in Casper the Friendly Binary Cosnensus.
+In this section we specify the Binary consensus protocol by first defining protocol messages, and then defining the estimator (which maps sets of protocol messages to $0$ or $1$). Next, we give a way to detect and count Byzantine faults. Then we will define Casper the Friendly Binary Consensus' ``protocol states'' as sets of messages that exhibit up to $t$ Byzantine faults. Then we will define the protocol's ``state transitions''. Finally, we will be able to define binary estimate safety.  These definitions will satisfy those in the consensus safety proof for decisions on safe estimates.
 
 The definition of ``protocol messages'' is parametric in a set of ``validator names'' $\mathcal{V}$, which are identified as the names of the consensus forming nodes.
 
@@ -257,7 +257,9 @@ But now that we've covered the binary consensus protocol, it will be a lot easie
 
 \section{Casper the Friendly Ghost}
 
-The specification of Casper the Friendly Ghost is going to proceed along \emph{very} similar lines as Casper the Friendly Binary Consensus. We will again first define the set of all protocol messages and then the estimator, which this time is going to be the Greedy Heaviest-observed Sub-tree (GHOST) ``fork choice rule''. Finally, we will define protocol states as sets of messages with less than $t$ Byzantine faults.
+The specification of Casper the Friendly Ghost is going to proceed along \emph{very} similar lines as Casper the Friendly Binary Consensus.
+
+We will again first define the set of all protocol messages and then the estimator, which this time is going to be the Greedy Heaviest-observed Sub-tree (GHOST) ``fork choice rule''. Then, we will define protocol states as sets of messages which exhibit up to $t$ Byzantine faults, and then we define the protocol's ``state transitions''. Finally, we will be able to define block estimate safety. These definitions will satisfy those in the consensus safety proof for decisions on safe estimates.
 
 Protocol messages are called ``blocks'' and have the same three components as the messages in the binary consensus protocol; an estimate, a sender and a justification. The estimate is a block, called ``the prevblock'' or ``the parent block''. For valid messages, the estimate will be the block on the head of the blockchain chosen by fork choice rule in the justification. The ``sender'' (a validator name) field is defined precisely as before. Finally, the justification is again simply a set of protocol messages.
 
